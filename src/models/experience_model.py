@@ -1,15 +1,9 @@
-from enum import Enum
 from datetime import date, datetime
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
-class Emp_Type(str, Enum):
-    part_time: "part_time"
-    full_time: "full_time"
+from .util_model import Emp_Type,  Loc_Type
 
-class Loc_Type(str, Enum):
-    remote: "remote"
-    onsite: "onsite"
 
 class Experience(BaseModel):
     role: str = Field(...)
