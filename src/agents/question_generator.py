@@ -1,15 +1,17 @@
 from typing import Dict, Any
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, messages_to_dict
 from .agent_utils.llm import llm
 from .agent_utils.prompt import generate_interview_prompt
 from .agent_utils.states import GlobalState
-from .agent_utils.short_term_memory import session_store
+from .agent_utils.redis_session import session_store
+from .agent_utils.redis_utils import serialize_history
 
 
 def question_generator_node(state: GlobalState) -> Dict[str, Any]:
     """
     Production node to generate the next interview question.
     """
+    session_id = state.get("session_id")
     print(f"---GENERATING QUESTION [{state.get('interview_phase', 'unknown')}]---")
     
     # 1. Extract State
@@ -33,6 +35,17 @@ def question_generator_node(state: GlobalState) -> Dict[str, Any]:
     # 4. Update State
     new_ai_message = AIMessage(content=generated_question)
     updated_history = chat_history + [new_ai_message]
+
+
+    if session_id:
+        session_store.update(
+            session_id,
+            next_question=generated_question,
+            # Serialize the message objects to dicts for JSON storage
+            chat_history=messages_to_dict(updated_history),
+            # Ideally, we also save the phase if logic elsewhere changed it
+            interview_phase=phase 
+        )
 
 
 

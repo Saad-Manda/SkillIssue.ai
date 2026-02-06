@@ -16,7 +16,7 @@ class RedisSessionStore:
             return {
                 "user": None,
                 "user_summary": None,
-                "chat_history": []
+                "chat_history": {}
             }
         return json.loads(raw)
 
