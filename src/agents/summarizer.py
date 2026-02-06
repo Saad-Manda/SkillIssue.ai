@@ -3,11 +3,8 @@ from typing import TypedDict
 from langchain_core.messages import HumanMessage, SystemMessage
 from ..models.user_model import User
 from .agent_utils.llm import llm
-from .agent_utils.summarizer_prompt import summarize_user_prompt
-
-class SummarizerAgentState(TypedDict):
-    user: User
-    summary: str
+from .agent_utils.prompt import summarize_user_prompt
+from .agent_utils.states import SummarizerAgentState
 
 def summarizer_node(state: SummarizerAgentState):
     """
