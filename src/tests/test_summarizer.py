@@ -3,7 +3,7 @@
 Example script to test the orchestrator flow with sample data
 """
 from datetime import date
-from .orchestrator import app
+from ..agents.orchestrator import app
 from ..models.user_model import User
 from ..models.jd_model import JobDescription
 from ..models.experience_model import Experience
