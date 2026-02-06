@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import MessagesState
 
-from ..utils.llm import llm
+from .agent_utils.llm import llm
 from ..config import settings
 from .summarizer import summarizer_node
 

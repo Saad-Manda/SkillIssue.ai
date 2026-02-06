@@ -1,15 +1,15 @@
 import operator
 from typing import TypedDict
 from langchain_core.messages import HumanMessage, SystemMessage
-from ..utils.llm import llm
 from ..models.user_model import User
-from .prompts.summarizer_prompt import summarize_user_prompt
+from .agent_utils.llm import llm
+from .agent_utils.summarizer_prompt import summarize_user_prompt
 
-class AgentState(TypedDict):
+class SummarizerAgentState(TypedDict):
     user: User
     summary: str
 
-def summarizer_node(state: AgentState):
+def summarizer_node(state: SummarizerAgentState):
     """
     Node that takes a User object from the state, contextualizes their profile,
     and generates a concise summary without ambiguity.
