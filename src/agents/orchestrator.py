@@ -17,4 +17,4 @@ graph.add_edge("summarizer_node", END)
 app = graph.compile()
 
 
-app.invoke({"messages": [{"role": "user", "content": "hi!"}]})
+# app.invoke({"messages": [{"role": "user", "content": "hi!"}]})
