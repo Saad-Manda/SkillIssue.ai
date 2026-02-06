@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     DATABASE_URL: str = ""
     MODEL: str = "models/gemini-2.5-flash"
+    GOOGLE_API_KEY: str = ""
     model_config = SettingsConfigDict(env_file = BASE_DIR / ".env")
 
 
