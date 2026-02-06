@@ -13,3 +13,16 @@ aiofiles>=23.2.1
 httpx
 pydantic[email]
 gradio
+langchain
+langchain-chroma
+langchain-community
+langchain-core
+langchain-groq
+langchain-huggingface
+langchain-ollama
+langchain-openai
+langchain-text-splitters
+langserve
+langsmith
+langgraph
+bs4
