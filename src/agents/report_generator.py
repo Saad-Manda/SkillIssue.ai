@@ -3,9 +3,7 @@ from .agent_utils.llm import llm
 from .agent_utils.redis_session import session_store
 from .agent_utils.prompt import generate_report_prompt
 
-def generate_report(session_id: str) -> str:
-    # 1. Retrieve State
-    state = session_store.get(session_id)
+def generate_report(state) -> str:
     
     if not state:
         return "## Error\nSession data could not be retrieved. Please try again."
