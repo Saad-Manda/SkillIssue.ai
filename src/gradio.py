@@ -60,6 +60,20 @@ def start_session(user_json: str, jd_json: str, max_turns: int):
     result = question_generator_node(state)
     next_question = result.get("next_question", "")
 
+    store_count = state.get("store_count", 0) + 1
+    session_store.update(
+        session_id,
+        next_question=next_question,
+        chat_history=messages_to_dict(
+            result.get("chat_history", state["chat_history"])
+        ),
+        recent_turns=result.get("recent_turns", state.get("recent_turns", [])),
+        turn_count=result.get("turn_count", state.get("turn_count", 0)),
+        max_turns=result.get("max_turns", state.get("max_turns", max_turns)),
+        interview_phase=state.get("interview_phase", "introduction"),
+        store_count=store_count,
+    )
+
     chat = [{"role": "assistant", "content": next_question}]
     latest_state = session_store.get(session_id)
 
@@ -91,10 +105,12 @@ def submit_answer(session_id: str, answer: str, chat):
     history_messages = _hydrate_messages(state.get("chat_history"))
     history_messages.append(HumanMessage(content=answer))
 
+    store_count = state.get("store_count", 0) + 1
     session_store.update(
         session_id,
         recent_turns=recent_turns,
         chat_history=messages_to_dict(history_messages),
+        store_count=store_count,
     )
 
     turn_count = state.get("turn_count", 0)
@@ -112,6 +128,20 @@ def submit_answer(session_id: str, answer: str, chat):
     state["chat_history"] = _hydrate_messages(state.get("chat_history"))
     result = question_generator_node(state)
     next_question = result.get("next_question", "")
+
+    store_count = state.get("store_count", 0) + 1
+    session_store.update(
+        session_id,
+        next_question=next_question,
+        chat_history=messages_to_dict(
+            result.get("chat_history", state["chat_history"])
+        ),
+        recent_turns=result.get("recent_turns", state.get("recent_turns", [])),
+        turn_count=result.get("turn_count", state.get("turn_count", 0)),
+        max_turns=result.get("max_turns", state.get("max_turns", 1)),
+        interview_phase=state.get("interview_phase", "introduction"),
+        store_count=store_count,
+    )
 
     chat.append({"role": "assistant", "content": next_question})
     latest_state = session_store.get(session_id)

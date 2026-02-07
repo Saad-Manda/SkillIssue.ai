@@ -1,16 +1,9 @@
 from typing import Any, Dict
 
-from langchain_core.messages import (
-    AIMessage,
-    HumanMessage,
-    SystemMessage,
-    messages_to_dict,
-)
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from .agent_utils.llm import llm
 from .agent_utils.prompt import generate_interview_prompt
-from .agent_utils.redis_session import session_store
-from .agent_utils.redis_utils import serialize_history
 from .agent_utils.states import GlobalState
 
 
@@ -18,13 +11,12 @@ def question_generator_node(state: GlobalState) -> Dict[str, Any]:
     """
     Production node to generate the next interview question.
     """
-    session_id = state.get("session_id")
     print(f"---GENERATING QUESTION [{state.get('interview_phase', 'unknown')}]---")
 
     # 1. Extract State
     jd = state.get("current_jd", {})
     user_summary = state.get("user_summary", "Candidate info not available.")
-    phase = state.get("interview_phase", "introduction")
+    phase = state.get("interview_phase", "introduction") ## ----> here the phase is default the introduction but we need to tweak here  according to response of the user
     chat_history = state.get("chat_history", [])
     recent_turns = state.get("recent_turns", [])
     turn_count = state.get("turn_count", 0)
@@ -49,19 +41,6 @@ def question_generator_node(state: GlobalState) -> Dict[str, Any]:
         {"question": generated_question, "answer": "", "metrics": {}}
     ]
     updated_turn_count = turn_count + 1
-
-    if session_id:
-        session_store.update(
-            session_id,
-            next_question=generated_question,
-            # Serialize the message objects to dicts for JSON storage
-            chat_history=messages_to_dict(updated_history),
-            recent_turns=updated_turns,
-            turn_count=updated_turn_count,
-            max_turns=max_turns,
-            # Ideally, we also save the phase if logic elsewhere changed it
-            interview_phase=phase,
-        )
 
     return {
         "next_question": generated_question,
