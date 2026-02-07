@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr, Field
 from .experience_model import Experience
 from .education_model import Education
 from .project_model import Project
-from leadership_model import LeaderShip
+from .leadership_model import LeaderShip
 from typing import List, Optional
 
 
