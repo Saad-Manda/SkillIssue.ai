@@ -1,7 +1,10 @@
 import json
+from typing import Any, Dict
+
 import redis
-from typing import Dict, Any
+
 from ...config import settings
+
 
 class RedisSessionStore:
     def __init__(self, url=settings.REDIS_URL):
@@ -13,11 +16,7 @@ class RedisSessionStore:
     def get(self, session_id: str) -> Dict[str, Any]:
         raw = self.client.get(self._key(session_id))
         if raw is None:
-            return {
-                "user": None,
-                "user_summary": None,
-                "chat_history": {}
-            }
+            return {"user": None, "user_summary": None, "chat_history": {}}
         return json.loads(raw)
 
     def set(self, session_id: str, data: Dict[str, Any], ttl: int | None = None):
@@ -32,7 +31,6 @@ class RedisSessionStore:
         state = self.get(session_id)
         state.update(kwargs)
         self.set(session_id, state)
-
 
 
 session_store = RedisSessionStore()
