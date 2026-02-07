@@ -4,7 +4,6 @@ from .agent_utils.llm import llm
 from .agent_utils.prompt import generate_interview_prompt
 from .agent_utils.states import GlobalState
 from .agent_utils.redis_session import session_store
-from .agent_utils.redis_utils import serialize_history
 
 
 def question_generator_node(state: GlobalState) -> Dict[str, Any]:
@@ -36,20 +35,20 @@ def question_generator_node(state: GlobalState) -> Dict[str, Any]:
     new_ai_message = AIMessage(content=generated_question)
     updated_history = chat_history + [new_ai_message]
 
+    
+    # if session_id:
+    #     session_store.update(
+    #         session_id,
+    #         next_question=generated_question,
+    #         # Serialize the message objects to dicts for JSON storage
+    #         chat_history=messages_to_dict(updated_history),
+    #         # Ideally, we also save the phase if logic elsewhere changed it
+    #         interview_phase=phase 
+    #     )
 
-    if session_id:
-        session_store.update(
-            session_id,
-            next_question=generated_question,
-            # Serialize the message objects to dicts for JSON storage
-            chat_history=messages_to_dict(updated_history),
-            # Ideally, we also save the phase if logic elsewhere changed it
-            interview_phase=phase 
-        )
+    state["chat_history"].append({
+        "question": response.content,
+        "answer": ""
+    })
 
-
-
-    return {
-        "next_question": generated_question,
-        "chat_history": updated_history
-    }
+    return state

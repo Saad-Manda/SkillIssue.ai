@@ -20,12 +20,9 @@ def start_new_interview(session_id: str, user_data: dict, jd_data: dict, summary
         "current_jd": jd_data,
         "user_summary": summary,
         
-        "recent_turns": [],
+        "chat_history": [],
         "interview_phase": "introduction", # We always start here
         "next_question": None,
-        
-        # Serialize empty list explicitly
-        "chat_history": [], 
         
         "final_report": None
     }
@@ -35,12 +32,3 @@ def start_new_interview(session_id: str, user_data: dict, jd_data: dict, summary
     session_store.set(session_id, initial_state)
     
     print(f"Session {session_id} created in Redis.")
-
-
-
-def serialize_history(messages: List[BaseMessage]) -> List[Dict]:
-    """
-    Converts a list of LangChain Message objects into a JSON-serializable list of dicts.
-    Required because RedisSessionStore uses json.dumps().
-    """
-    return messages_to_dict(messages)
