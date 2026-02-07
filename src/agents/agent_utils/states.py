@@ -7,7 +7,7 @@ from ...models.user_model import User
 
 
 class InterviewTurn(TypedDict):
-    question: str
+    question: BaseMessage
     answer: str
     metrics: dict
 
@@ -25,6 +25,5 @@ class GlobalState(TypedDict):
 
     interview_phase: str
     next_question: Optional[str]
-    chat_history: List[BaseMessage]
 
     final_report: Optional[str] = None
