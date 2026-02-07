@@ -16,7 +16,7 @@ class RedisSessionStore:
     def get(self, session_id: str) -> Dict[str, Any]:
         raw = self.client.get(self._key(session_id))
         if raw is None:
-            return {"user": None, "user_summary": None, "chat_history": {}}
+            return {"user": None, "user_summary": None, "chat_history": []}
         return json.loads(raw)
 
     def set(self, session_id: str, data: Dict[str, Any], ttl: int | None = None):

@@ -12,8 +12,6 @@ def print_report(session_id: str):
     state = session_store.get(session_id)
     report = generate_report(state)
     
-    session_store.update(session_id, {
-        "final_report": report
-    })
+    session_store.update(session_id, final_report = report)
 
     return report
