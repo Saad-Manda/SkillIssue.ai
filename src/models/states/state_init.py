@@ -1,8 +1,8 @@
 from .redis_session import session_store
-from ...models.states.states import SessionState, SystemState
+from .states import SessionState, SystemState
 
-from ...models.states.turn import Turn
-from ...models.states.phase_summary import PhaseSummary
+from .turn import Turn
+from .phase_summary import PhaseSummary
 from ...models.user_model import User
 from ...models.jd_model import JobDescription
 from ...models.plan_model import Plan
