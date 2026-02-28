@@ -1,20 +1,16 @@
+from langchain_core.messages import HumanMessage, SystemMessage
+
 from ...models.states.states import SystemState
 
 
-def planner_prompt(system_state: SystemState):
+def planner_prompt(system_state: SystemState) -> list:
     user_json = system_state.user.model_dump_json(indent=2)
     jd_json = system_state.jd.model_dump_json(indent=2)
 
-    prompt = f"""
+    system_content = """
 You are an Interview Planning Agent.
 
 Your task is to generate a structured interview Plan using the following context from system_state.
-
-USER (from system_state.user):
-{user_json}
-
-JOB DESCRIPTION (from system_state.jd):
-{jd_json}
 
 You MUST strictly follow the Plan, Phase, and Topic schema definitions.
 
@@ -148,4 +144,15 @@ Do not include additional fields.
 Do not wrap the list inside another object.
 """
 
-    return prompt
+    human_content = f"""
+USER (from system_state.user):
+{user_json}
+
+JOB DESCRIPTION (from system_state.jd):
+{jd_json}
+"""
+
+    return [
+        SystemMessage(content=system_content),
+        HumanMessage(content=human_content),
+    ]
