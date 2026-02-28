@@ -10,29 +10,6 @@ from ..jd_model import JobDescription
 from ..plan_model import Plan
 
 
-# class InterviewTurn(TypedDict):
-#     question: BaseMessage
-#     answer: str
-#     metrics: dict
-
-
-# class GlobalState(TypedDict):
-#     session_id: str
-#     current_user: User
-#     current_jd: JobDescription
-#     user_summary: str
-
-#     recent_turns: List[InterviewTurn]
-#     turn_count: int
-#     max_turns: int
-#     store_count: int
-
-#     interview_phase: str
-#     next_question: Optional[str]
-
-#     final_report: Optional[str] = None
-
-
 class SessionState(BaseModel):
     session_id: str
     chat_history: List[Turn]
