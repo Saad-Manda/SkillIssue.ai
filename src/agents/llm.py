@@ -1,5 +1,5 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
-from ...config import settings
+from ..config import settings
 from dotenv import load_dotenv
 load_dotenv()
 
