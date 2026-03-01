@@ -24,8 +24,8 @@ def question_generator_node(system_state: SystemState) -> SystemState:
     chat_history = session_state.get("chat_history", [])[:-K]
 
     if is_indep:
-        prev_phase = chat_history[:-1].phase
-        prev_topic_id = chat_history[:-1].topic
+        prev_phase = chat_history[-1].phase
+        prev_topic_id = chat_history[-1].topic
 
         new_phase_idx, new_topic_idx = get_independent_topic(
             plan, prev_phase, prev_topic_id
@@ -56,8 +56,8 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         
         return system_state
 
-    current_phase = chat_history[:-1].phase
-    current_phase_summary = phase_summary[:-1]
+    current_phase = chat_history[-1].phase
+    current_phase_summary = phase_summary[-1]
 
     messages = dependent_question_prompt(
         current_phase_summary=current_phase_summary,
