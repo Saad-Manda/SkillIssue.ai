@@ -19,9 +19,12 @@ class SessionState(BaseModel):
 class SystemState(BaseModel):
     session_id: str
     user: User
+    user_summary: str
     jd: JobDescription
     current_question: str
+    is_curr_question_independent: bool
     current_response: str
     plan: Plan
+    current_topic_id: str
     current_phase_name: str
     final_report: str

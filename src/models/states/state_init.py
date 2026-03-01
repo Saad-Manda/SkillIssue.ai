@@ -34,11 +34,14 @@ def system_state_initialize(
 
     system_state.session_id = session_id
     system_state.user = user
+    system_state.user_summary = None
     system_state.jd = jd
     system_state.current_question = None
+    system_state.is_curr_question_independent = True
     system_state.current_response = None
     system_state.current_phase_name = None
     system_state.plan = None
+    system_state.current_topic_id = None
     system_state.final_report = None
 
     return system_state

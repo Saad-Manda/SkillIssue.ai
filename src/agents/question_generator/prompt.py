@@ -6,18 +6,17 @@ from ...models.jd_model import JobDescription
 from ...models.plan_model import Phase, Topic
 from ...models.states.phase_summary import PhaseSummary
 from ...models.states.turn import Turn
-from ...models.user_model import User
 
 
 def independent_question_prompt(
     previous_phase_summaries: List[PhaseSummary],
-    user: User,
+    user_summary: str,
     jd: JobDescription,
     phase: Phase,
     topic: Topic,
 ) -> list:
     previous_phase_summaries_json = [s.model_dump() for s in previous_phase_summaries]
-    user_json = user.model_dump_json(indent=2)
+    user_json = user_summary.model_dump_json(indent=2)
     jd_json = jd.model_dump_json(indent=2)
     phase_json = phase.model_dump_json(indent=2)
     topic_json = topic.model_dump_json(indent=2)
