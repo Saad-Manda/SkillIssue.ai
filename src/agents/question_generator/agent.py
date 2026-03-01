@@ -53,6 +53,9 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         system_state.current_question = new_question
         system_state.current_phase_name = new_phase
         system_state.current_topic_id = new_topic.topic_id
+        system_state.current_topic_question_count = 1
+
+
         
         return system_state
 
@@ -74,5 +77,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         raise
 
     system_state.current_question = new_question
+    system_state.current_topic_question_count += 1
+
 
     return system_state

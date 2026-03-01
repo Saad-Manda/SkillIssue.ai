@@ -26,5 +26,6 @@ class SystemState(BaseModel):
     current_response: str
     plan: Plan
     current_topic_id: str
+    current_topic_question_count: int
     current_phase_name: str
     final_report: str
