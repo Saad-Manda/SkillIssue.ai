@@ -42,6 +42,7 @@ def system_state_initialize(
     system_state.current_phase_name = None
     system_state.plan = None
     system_state.current_topic_question_count = 0
+    system_state.current_turn_status = None
     system_state.current_topic_id = None
     system_state.final_report = None
 

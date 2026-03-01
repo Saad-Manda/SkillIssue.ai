@@ -6,6 +6,7 @@ class Topic(BaseModel):
     topic: str
     source: str
     weight: float
+    max_question_count: int
 
 class Phase(BaseModel):
     phase_id: str

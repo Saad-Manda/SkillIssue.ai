@@ -130,6 +130,7 @@ Return ONLY a valid JSON array (list) of Phase objects matching this exact struc
         "topic": "string",
         "source": "jd|resume|inferred",
         "weight": 0.0
+        "max_question_count": 0
       }}
     ]
   }}

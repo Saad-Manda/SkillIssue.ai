@@ -1,7 +1,5 @@
 from langchain_core.messages import AIMessage
 
-from src.models.states import phase_summary
-
 from ..llm import llm
 from .prompt import independent_question_prompt, dependent_question_prompt
 from .get_topic import get_independent_topic
@@ -10,18 +8,18 @@ from ...models.states.redis_session import session_store
 
 def question_generator_node(system_state: SystemState) -> SystemState:
 
-    K = 5
 
     session_id = system_state.session_id
     session_state = session_store.get(session_id)
 
     user_summary = system_state.user_summary
     jd = system_state.jd
+    k = system_state.current_topic_question_count
     plan = system_state.plan
     is_indep = system_state.is_curr_question_independent
 
     phase_summary = session_state.get("phase_summary", [])
-    chat_history = session_state.get("chat_history", [])[:-K]
+    chat_history = session_state.get("chat_history", [])[:-k]
 
     if is_indep:
         prev_phase = chat_history[-1].phase
