@@ -7,6 +7,6 @@ class Turn(BaseModel):
     chat_id: str
     question: str
     response: str
-    metrics: List[Metrics]
+    metrics: TypedDict
     phase_name: str
     topic_id: str

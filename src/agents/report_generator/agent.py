@@ -9,6 +9,7 @@ def report_node(system_state: SystemState) -> SystemState:
 
     session_id = system_state.session_id
     session_state = session_store.get(session_id)
+    print(f"[report_generator] start session_id={session_id}")
 
     user_summary = system_state.user_summary
     jd = system_state.jd
@@ -51,13 +52,18 @@ def report_node(system_state: SystemState) -> SystemState:
     ]
     report = "## Error\nAn error occurred while generating the report."
     try:
+        print(
+            f"[report_generator] invoking llm messages={len(messages)} "
+            f"transcript_len={len(formatted_transcript)} user_summary_len={len(user_summary or '')}"
+        )
         response = llm.invoke(messages)
         report = response.content
     except Exception as e:
         # Log error here if you have a logger
-        print(f"## Generation Error\nAn error occurred while generating the report: {str(e)}")
+        print(f"[report_generator] Generation Error: {str(e)}")
 
     
     system_state.final_report = report
+    print(f"[report_generator] done report_len={len(report or '')}")
 
     return system_state

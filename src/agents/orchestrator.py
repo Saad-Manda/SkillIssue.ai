@@ -18,6 +18,7 @@ load_dotenv()
 
 checkpointer = MemorySaver()
 def _build_graph():
+    print("[orchestrator] building interview graph")
     graph = StateGraph(SystemState)
 
     # Nodes
@@ -44,6 +45,10 @@ def _build_graph():
 
     app = graph.compile(
         checkpointer=checkpointer,
-        interrupt_before=["router", "question_generator", "report_generator"],
+        # Interrupt the graph after generating a question, i.e. before
+        # the `phase_summarizer` node, so that the UI can display the
+        # question, collect the user's response, and then resume.
+        interrupt_before=["phase_summarizer"],
     )
+    print("[orchestrator] graph compiled")
     return app

@@ -4,12 +4,11 @@ from ...models.states.phase_summary import PhaseSummary
 
 
 def same_phase_summary_prompt(
-    current_phase_summary: PhaseSummary,
+    current_phase_summary: str,
     current_question: str,
     current_response: str,
 ) -> list:
     """Build messages for incremental update of an existing phase summary."""
-    current_phase_summary_json = current_phase_summary.model_dump_json(indent=2)
 
     system_content = """
 You are a precise interview phase summarization assistant.
@@ -40,7 +39,7 @@ UPDATE RULES:
 
     human_content = f"""
 CURRENT PHASE SUMMARY (to update):
-{current_phase_summary_json}
+{current_phase_summary}
 
 LATEST QUESTION:
 {current_question}
@@ -59,13 +58,12 @@ Return only the updated summary text.
 
 
 def phase_change_summary_prompt(
-    previous_phase_summary: PhaseSummary,
+    previous_phase_summary: str,
     current_phase: str,
     current_question: str,
     current_response: str,
 ) -> list:
     """Build messages for generating the first summary when transitioning to a new phase."""
-    previous_phase_summary_json = previous_phase_summary.model_dump_json(indent=2)
 
     system_content = """
 You are a precise interview phase summarization assistant.
@@ -98,7 +96,7 @@ PHASE TRANSITION RULES:
 
     human_content = f"""
 PREVIOUS PHASE SUMMARY (for context only; do not copy its content):
-{previous_phase_summary_json}
+{previous_phase_summary}
 
 CURRENT PHASE:
 {current_phase}

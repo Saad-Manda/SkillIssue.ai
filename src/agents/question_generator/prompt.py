@@ -16,7 +16,7 @@ def independent_question_prompt(
     topic: Topic,
 ) -> list:
     previous_phase_summaries_json = [s.model_dump() for s in previous_phase_summaries]
-    user_json = user_summary.model_dump_json(indent=2)
+    user_json = user_summary
     jd_json = jd.model_dump_json(indent=2)
     phase_json = phase.model_dump_json(indent=2)
     topic_json = topic.model_dump_json(indent=2)

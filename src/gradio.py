@@ -66,14 +66,31 @@ def _build_initial_state(
     )
 
 
-def _run_graph(state: SystemState) -> SystemState:
-    return app.invoke(
-        state,
-        config={
-            "configurable": {"thread_id": state.session_id},
-            "recursion_limit": 50,
-        },
-    )
+def _run_graph(state: SystemState, *, resume: bool = False) -> SystemState:
+    """
+    Run or resume the LangGraph interview flow.
+
+    - When resume=False (initial call), we start the graph from the entry node.
+    - When resume=True, we continue from the last interrupted node for this
+      session_id, merging in the updated fields from `state`.
+    """
+    # Base config for this session
+    config = {
+        "configurable": {"thread_id": state.session_id},
+        "recursion_limit": 50,
+    }
+
+    if resume:
+        # Resume from the last checkpoint while applying the updated fields
+        # from `state`. LangGraph merges this partial state into the stored
+        # checkpoint before continuing from the interrupted node.
+        input_payload = state
+    else:
+        # First run for this session: start from the graph entry point.
+        input_payload = state
+
+    result = app.invoke(input_payload, config=config)
+    return SystemState.model_validate(result)
 
 
 def start_session(user_json: str, jd_json: str, interview_length: str):
@@ -89,7 +106,8 @@ def start_session(user_json: str, jd_json: str, interview_length: str):
 
     session_id = str(uuid.uuid4())
     initial_state = _build_initial_state(session_id, user, jd, interview_length)
-    state = _run_graph(initial_state)
+    # First graph run: start from entry node (user_summarizer/planner/etc.).
+    state = _run_graph(initial_state, resume=False)
 
     chat = []
     if state.current_question:
@@ -110,7 +128,9 @@ def submit_answer(session_id: str, state: SystemState | None, answer: str, chat)
         chat.append({"role": "user", "content": answer})
 
     updated_state = state.model_copy(update={"current_response": answer})
-    next_state = _run_graph(updated_state)
+    # Resume the graph from the last interruption (just after question generation),
+    # starting at the `phase_summarizer` node for this session.
+    next_state = _run_graph(updated_state, resume=True)
 
     if next_state.current_question:
         chat.append({"role": "assistant", "content": next_state.current_question})

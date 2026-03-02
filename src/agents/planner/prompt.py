@@ -1,5 +1,3 @@
-import math
-
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from ...models.states.states import SystemState
@@ -144,33 +142,38 @@ Weights should reflect:
 
 OUTPUT FORMAT
 
-Return ONLY a valid JSON array (list) of Phase objects matching this exact structure:
+Return ONLY a valid JSON object matching the `Plan` schema (a single object with a top-level `"phase"` key).
 
-[
-  {{
-    "phase_id": "string",
-    "name": "string",
-    "objective": "string",
-    "weight": 0.0,
-    "topics": [
-      {{
-        "topic_id": "string",
-        "topic": "string",
-        "source": "jd|resume|inferred",
-        "weight": 0.0,
-        "max_question_count": 0
-      }}
-    ]
-  }}
-]
+The output MUST be raw JSON only:
+- Do NOT wrap in markdown/code fences (no ```json ... ```).
+- Do NOT include any explanation or extra text.
+- The first character of your output must be `{{` and the last character must be `}}`.
 
-Each topic must have both "weight" and "max_question_count" (0–3) set. This corresponds to List[Phase], where each Phase has topics: List[Topic].
+{{
+  "phase": [
+    {{
+      "phase_id": "string",
+      "name": "string",
+      "objective": "string",
+      "weight": 0.0,
+      "topics": [
+        {{
+          "topic_id": "string",
+          "topic": "string",
+          "source": "jd|resume|inferred",
+          "weight": 0.0,
+          "max_question_count": 0
+        }}
+      ]
+    }}
+  ]
+}}
 
-Do internal reasoning piecewise for User, JD, and each Phase schema instance, but output only the final JSON array.
+Each topic must have both "weight" and "max_question_count" (0–3) set.
 
-Do not include explanations.
+Do internal reasoning piecewise for User, JD, and each Phase schema instance, but output only the final JSON object.
+
 Do not include additional fields.
-Do not wrap the list inside another object.
 """
 
     human_content = f"""

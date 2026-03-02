@@ -27,9 +27,23 @@ class RedisSessionStore:
         else:
             self.client.set(key, payload)
 
-    def update(self, session_id: str, **kwargs):
+    def update(self, session_id: str, data: Dict[str, Any] | None = None, **kwargs):
+        """
+        Update the stored session state.
+
+        Supports two calling styles:
+        - update(session_id, {"faah": "bar"})
+        - update(session_id, faah="bar")
+        or a combination of both.
+        """
         state = self.get(session_id)
-        state.update(kwargs)
+        if data is not None:
+            if isinstance(data, dict):
+                state.update(data)
+            else:
+                raise TypeError("data must be a dict if provided")
+        if kwargs:
+            state.update(kwargs)
         self.set(session_id, state)
 
 

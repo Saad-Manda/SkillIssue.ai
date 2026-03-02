@@ -8,6 +8,11 @@ from ...models.states.turn import Turn
 def metrics_node(system_state: SystemState) -> SystemState:
     session_id = system_state.session_id
     session_state = session_store.get(session_id)
+    print(
+        f"[metric_calculator] start session_id={session_id} "
+        f"phase={system_state.current_phase_name} "
+        f"topic_id={system_state.current_topic_id}"
+    )
 
     chat_history = session_state.get("chat_history") or []
     current_question = system_state.current_question
@@ -21,6 +26,10 @@ def metrics_node(system_state: SystemState) -> SystemState:
         answer=current_response,
         chat_history=chat_history,
         behavioral_phase=(True if re.findall('behavior', current_phase.lower()) else False),
+    )
+    print(
+        f"[metric_calculator] metrics_done keys={len(results)} "
+        f"QAR={results.get('QAR')} TDS={results.get('TDS')} ACS={results.get('ACS')}"
     )
 
     current_turn = Turn(
@@ -39,4 +48,5 @@ def metrics_node(system_state: SystemState) -> SystemState:
             "chat_history": chat_history
         })
 
+    print(f"[metric_calculator] done turns={len(chat_history)}")
     return system_state
