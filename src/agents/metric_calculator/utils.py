@@ -15,7 +15,7 @@ from ...agents.llm import llm
 Turn    = Dict[str, str]
 Metrics = Dict[str, Any]
 
-_embedder = SentenceTransformer(model="sentence-transformers/all-MiniLM-L6-v2")
+_embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 
 def embed(text: str) -> np.ndarray:

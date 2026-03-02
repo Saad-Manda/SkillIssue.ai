@@ -45,6 +45,5 @@ def _build_graph():
     app = graph.compile(
         checkpointer=checkpointer,
         interrupt_before=["router", "question_generator", "report_generator"],
-        recursion_limit=50,
     )
     return app

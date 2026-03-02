@@ -69,7 +69,10 @@ def _build_initial_state(
 def _run_graph(state: SystemState) -> SystemState:
     return app.invoke(
         state,
-        config={"configurable": {"thread_id": state.session_id}},
+        config={
+            "configurable": {"thread_id": state.session_id},
+            "recursion_limit": 50,
+        },
     )
 
 
