@@ -1,17 +1,17 @@
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from .agent_utils.llm import llm
-from .agent_utils.prompt import generate_report_prompt
-from .agent_utils.redis_session import session_store
+from ..llm import llm
+from .prompt import generate_report_prompt
+from ...models.states.states import SystemState
 
-def generate_report(state) -> str:
+def generate_report(system_state: SystemState) -> SystemState:
 
-    if not state:
+    if not system_state:
         return "## Error\nSession data could not be retrieved. Please try again."
 
-    user_summary = state.get("user_summary", "N/A")
-    jd = state.get("current_jd", "N/A")
-    raw_history = state.get("chat_history", [])
+    user_summary = system_state.get("user_summary", "N/A")
+    jd = system_state.get("current_jd", "N/A")
+    raw_history = system_state.get("chat_history", [])
     if not isinstance(raw_history, list):
         raw_history = []
 
@@ -19,7 +19,7 @@ def generate_report(state) -> str:
     # Converts list of messages (dicts or objects) into a readable script format
     formatted_transcript = ""
     for msg in raw_history:
-        # Handle if msg is a dict (common in session state) or an object
+        # Handle if msg is a dict (common in session system_state) or an object
         if isinstance(msg, dict):
             if "role" in msg or "content" in msg:
                 role = msg.get("role", "unknown").upper()
@@ -53,7 +53,12 @@ def generate_report(state) -> str:
 
     try:
         response = llm.invoke(messages)
-        return response.content
+        report = response.content
     except Exception as e:
         # Log error here if you have a logger
-        return f"## Generation Error\nAn error occurred while generating the report: {str(e)}"
+        print(f"## Generation Error\nAn error occurred while generating the report: {str(e)}")
+
+    
+    system_state.final_report = report
+
+    return system_state
