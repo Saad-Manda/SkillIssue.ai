@@ -1,3 +1,4 @@
+import json
 from langchain_core.messages import AIMessage
 
 from ..llm import llm
@@ -18,6 +19,11 @@ def router_node(system_state: SystemState) -> SystemState:
         if topic.topic_id == current_topic_id
     ]
     current_topic = matching_topics[0] if matching_topics else None
+    if current_topic is None:
+        system_state.is_curr_question_independent = True
+        system_state.current_turn_status = "TOPIC CHANGED"
+        return system_state
+
     max_question_count = current_topic.max_question_count
     
     
@@ -37,7 +43,7 @@ def router_node(system_state: SystemState) -> SystemState:
 
     try:
         response: AIMessage = llm.invoke(messages)
-        result = response.content
+        result = json.loads(response.content)
     except Exception as e:
         print(f"Error in LLM invocation: {e}")
         raise

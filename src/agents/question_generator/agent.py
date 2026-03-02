@@ -23,15 +23,15 @@ def question_generator_node(system_state: SystemState) -> SystemState:
     chat_history = session_state.get("chat_history", [])[:-k]
 
     if reason == "TOPIC CHANGED":
-        prev_phase = chat_history[-1].phase
-        prev_topic_id = chat_history[-1].topic
+        prev_phase = chat_history[-1].phase_name
+        prev_topic_id = chat_history[-1].topic_id
 
         new_phase_idx, new_topic_idx = get_next_topic(
             plan, prev_phase, prev_topic_id
         )
 
         new_phase = plan.phase[new_phase_idx]
-        new_topic = new_phase[new_topic_idx]
+        new_topic = new_phase.topics[new_topic_idx]
 
 
         messages = independent_question_prompt(
@@ -50,7 +50,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             raise
 
         system_state.current_question = new_question
-        system_state.current_phase_name = new_phase
+        system_state.current_phase_name = new_phase.name
         system_state.current_topic_id = new_topic.topic_id
         system_state.current_topic_question_count = 1
 
@@ -59,7 +59,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         return system_state
 
     elif not is_indep:
-        current_phase = chat_history[-1].phase
+        current_phase = chat_history[-1].phase_name
         current_phase_summary = phase_summary[-1]
 
         messages = dependent_question_prompt(
@@ -86,8 +86,8 @@ def question_generator_node(system_state: SystemState) -> SystemState:
 
 
 
-    current_phase = chat_history[-1].phase
-    current_topic_id = chat_history[-1].topic
+    current_phase = chat_history[-1].phase_name
+    current_topic_id = chat_history[-1].topic_id
 
     topic = get_current_topic(
             plan, current_phase, current_topic_id
@@ -98,7 +98,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         previous_phase_summaries=phase_summary,
         user_summary=user_summary,
         jd=jd,
-        phase=current_phase.name,
+        phase=current_phase,
         topic=topic.topic
     )
 

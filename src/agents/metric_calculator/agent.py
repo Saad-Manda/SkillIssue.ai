@@ -9,7 +9,7 @@ def metrics_node(system_state: SystemState) -> SystemState:
     session_id = system_state.session_id
     session_state = session_store.get(session_id)
 
-    chat_history = session_state.get("chat_history")
+    chat_history = session_state.get("chat_history") or []
     current_question = system_state.current_question
     current_response = system_state.current_response
     current_phase = system_state.current_phase_name

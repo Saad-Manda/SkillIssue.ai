@@ -18,12 +18,11 @@ def planner_node(system_state: SystemState) -> SystemState:
 
     try:
         response: AIMessage = llm.invoke(messages)
-        plan = response.content
+        plan = Plan.model_validate_json(response.content)
     except Exception as e:
         print(f"Error in LLM invocation: {e}")
         raise
     
-    plan = Plan.parse_raw(response.content)
     system_state.plan = plan
 
     return system_state

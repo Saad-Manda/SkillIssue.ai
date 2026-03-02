@@ -3,12 +3,16 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from ..llm import llm
 from .prompt import generate_report_prompt
 from ...models.states.states import SystemState
+from ...models.states.redis_session import session_store
 
 def report_node(system_state: SystemState) -> SystemState:
 
-    user_summary = system_state.get("user_summary", "N/A")
-    jd = system_state.get("current_jd", "N/A")
-    raw_history = system_state.get("chat_history", [])
+    session_id = system_state.session_id
+    session_state = session_store.get(session_id)
+
+    user_summary = system_state.user_summary
+    jd = system_state.jd
+    raw_history = session_state.get("chat_history", [])
     if not isinstance(raw_history, list):
         raw_history = []
 

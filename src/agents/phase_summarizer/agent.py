@@ -15,12 +15,12 @@ def phase_summarizer_node(system_state: SystemState) -> SystemState:
 
     
     phase_summary = session_state.get("phase_summary", [])
-    current_phase_summary = phase_summary[-1].summary
+    last = phase_summary[-1] if phase_summary else None
 
-    if current_phase_summary.phase_name == system_state.current_phase_name:
+    if last and last["phase_name"] == system_state.current_phase_name:
         
         messages = same_phase_summary_prompt(
-            current_phase_summary=current_phase_summary,
+            current_phase_summary=last["summary"],
             current_question=current_question,
             current_response=current_response
         )
@@ -28,12 +28,11 @@ def phase_summarizer_node(system_state: SystemState) -> SystemState:
         try:
             response: AIMessage = llm.invoke(messages)
             new_summary = response.content
+            last["summary"] = new_summary
+
         except Exception as e:
             print(f"Error in LLM invocation: {e}")
             raise
-
-        phase_summary[-1].summary = new_summary
-
 
         session_store.update(session_id, {
             "session_id": session_id,
@@ -42,9 +41,9 @@ def phase_summarizer_node(system_state: SystemState) -> SystemState:
 
         return system_state
 
-    
+    previous = last["summary"] if last else ""
     messages = phase_change_summary_prompt(
-        previous_phase_summary=current_phase_summary,
+        previous_phase_summary=previous,
         current_phase=system_state.current_phase_name,
         current_question=current_question,
         current_response=current_response
@@ -57,9 +56,8 @@ def phase_summarizer_node(system_state: SystemState) -> SystemState:
         print(f"Error in LLM invocation: {e}")
         raise
 
-    phase_summary_id = uuid4()
     new_phase_summary = {
-        "phase_summary_id": phase_summary_id,
+        "phase_summary_id": str(uuid4()),
         "phase_name": system_state.current_phase_name,
         "summary": new_summary
     }
