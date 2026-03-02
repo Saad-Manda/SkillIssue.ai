@@ -17,7 +17,7 @@ def phase_summarizer_node(system_state: SystemState) -> SystemState:
     phase_summary = session_state.get("phase_summary", [])
     current_phase_summary = phase_summary[-1].summary
 
-    if phase_summary.phase_name == system_state.current_phase_name:
+    if current_phase_summary.phase_name == system_state.current_phase_name:
         
         messages = same_phase_summary_prompt(
             current_phase_summary=current_phase_summary,

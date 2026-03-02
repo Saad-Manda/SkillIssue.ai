@@ -3,6 +3,7 @@ from uuid import uuid4
 from ...models.states.states import SystemState
 from ...models.states.redis_session import session_store
 from .metrics import calculate_turn_metrics
+from ...models.states.turn import Turn
 
 def metrics_node(system_state: SystemState) -> SystemState:
     session_id = system_state.session_id
@@ -22,14 +23,14 @@ def metrics_node(system_state: SystemState) -> SystemState:
         behavioral_phase=(True if re.findall('behavior', current_phase.lower()) else False),
     )
 
-    current_turn = {
-        "chat_id": uuid4(),
-        "question": current_question,
-        "response": current_response,
-        "metrics": results,
-        "phase_name": current_phase,
-        "topic_id": current_topic_id
-    }
+    current_turn = Turn(
+        chat_id=str(uuid4()),
+        question=current_question,
+        response=current_response,
+        metrics=results,
+        phase_name=current_phase,
+        topic_id=current_topic_id,
+    )
 
     chat_history.append(current_turn)
 

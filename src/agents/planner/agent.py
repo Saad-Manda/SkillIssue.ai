@@ -3,6 +3,7 @@ from langchain_core.messages import AIMessage
 from ..llm import llm
 from .prompt import planner_prompt
 from ...models.states.states import SystemState
+from ...models.plan_model import Plan
 
 
 def planner_node(system_state: SystemState) -> SystemState:
@@ -21,7 +22,8 @@ def planner_node(system_state: SystemState) -> SystemState:
     except Exception as e:
         print(f"Error in LLM invocation: {e}")
         raise
-
+    
+    plan = Plan.parse_raw(response.content)
     system_state.plan = plan
 
     return system_state

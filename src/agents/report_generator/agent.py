@@ -6,9 +6,6 @@ from ...models.states.states import SystemState
 
 def report_node(system_state: SystemState) -> SystemState:
 
-    if not system_state:
-        return "## Error\nSession data could not be retrieved. Please try again."
-
     user_summary = system_state.get("user_summary", "N/A")
     jd = system_state.get("current_jd", "N/A")
     raw_history = system_state.get("chat_history", [])
@@ -46,11 +43,9 @@ def report_node(system_state: SystemState) -> SystemState:
     # 5. Invoke LLM
     messages = [
         SystemMessage(content=system_instruction),
-        HumanMessage(content=user_context_prompt),
-        SystemMessage(content=system_instruction),
         HumanMessage(content=user_context_prompt)
     ]
-
+    report = "## Error\nAn error occurred while generating the report."
     try:
         response = llm.invoke(messages)
         report = response.content

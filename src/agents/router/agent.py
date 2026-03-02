@@ -43,7 +43,7 @@ def router_node(system_state: SystemState) -> SystemState:
         raise
 
 
-    system_state.is_curr_question_independent = not result.is_dependent
-    system_state.current_turn_status = result.reason
+    system_state.is_curr_question_independent = not bool(result["is_dependent"])
+    system_state.current_turn_status = str(result["reason"])
 
     return system_state
