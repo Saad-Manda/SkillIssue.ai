@@ -9,8 +9,10 @@ from ...models.states.states import SystemState
 def planner_prompt(system_state: SystemState) -> list:
     user_json = system_state.user.model_dump_json(indent=2)
     jd_json = system_state.jd.model_dump_json(indent=2)
+    min_topics = getattr(system_state, "min_topics", 10)
+    max_topics = getattr(system_state, "max_topics", 15)
 
-    system_content = """
+    system_content = f"""
 You are an Interview Planning Agent.
 
 Your task is to generate a structured interview Plan using the following context from system_state.
@@ -52,6 +54,12 @@ Adjust number of phases based on:
 - min_experience
 - job_title
 - seniority implied
+
+INTERVIEW LENGTH CONSTRAINTS
+
+- The total number of distinct topics across all phases combined MUST be between {min_topics} and {max_topics}.
+- Choose the number of phases and topics per phase so that total topics stay within this range.
+- For a shorter interview, prioritize only the highest-impact JD-critical topics; for longer interviews, add more supporting or deep-dive topics.
 
 Generate phases:
 1. Define phase objective and weight.

@@ -29,4 +29,6 @@ class SystemState(BaseModel):
     current_topic_question_count: int
     current_phase_name: str
     current_turn_status: str
+    min_topics: int
+    max_topics: int
     final_report: str
