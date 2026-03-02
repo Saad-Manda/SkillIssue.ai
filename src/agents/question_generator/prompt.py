@@ -36,7 +36,6 @@ QUESTION STYLE RULES:
 
     mode_instruction = """
 BRANCH MODE: INDEPENDENT
-- Generate a fresh question for a topic transition.
 - Do NOT create a follow-up that depends on the candidate's immediate prior answer.
 - Align strictly to the provided current phase and current topic.
 """
