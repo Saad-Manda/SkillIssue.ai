@@ -1,6 +1,9 @@
+import math
+
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from ...models.states.states import SystemState
+
 
 
 def planner_prompt(system_state: SystemState) -> list:
@@ -18,12 +21,21 @@ OBJECTIVE
 
 Generate a structured, weighted, and source-traceable interview plan that:
 1. Maximizes coverage of required_skills from the JobDescription.
-2. Covers all major candidate experience areas from User (skills, projects, leadership, experience, education).
-3. Balances evaluation depth using weights.
+2. Covers candidate experience (User) only where it aligns with or complements the JD; do NOT give primary weight to user-only areas.
+3. Assigns a numeric weight and max_question_count to every topic at plan creation time.
 4. Ensures every Topic has a clear source:
+   - "jd" -> derived from JobDescription (required_skills, responsibilities)
    - "resume" -> derived from User
-   - "jd" -> derived from JobDescription
    - "inferred" -> logically derived from overlap or gaps
+
+WEIGHT ALLOTMENT — JD-DRIVEN (DO NOT FAVOUR THE USER)
+
+- Weights must heavily depend on the JD's requirements. Primary weight goes to what the job needs.
+- To keep the user engaged in the interview, you may explore the User's interest mentioned in resume.
+- Topics sourced from required_skills, responsibilities, and core JD criteria get the highest weights.
+- Topics that appear only on the User (resume) and are not in the JD get secondary, complimentary weight: the candidate may get a complimentary score for proficiency there, but that topic must NOT receive primary weight.
+- Overlap (User + JD) can have high weight because it serves the JD; user-only strengths get lower weight so the interview does not favour the candidate's profile over the role's needs.
+- Phase and topic weights should reflect: job criticality, business importance, and risk of mismatch — not how strong the candidate looks on paper.
 
 PHASE GENERATION RULES
 
@@ -43,7 +55,7 @@ Adjust number of phases based on:
 
 Generate phases:
 1. Define phase objective and weight.
-2. Define topics for that phase.
+2. Define topics for that phase, each with weight and max_question_count.
 3. Validate topic coverage and weight consistency for that phase.
 4. Move to next phase.
 
@@ -66,7 +78,8 @@ Each Topic must:
   - a User skill
   - a User project
   - a responsibility
-- Have a meaningful weight relative to other topics in the same phase
+- Have a weight assigned then and there during plan creation: higher for JD-critical topics, lower for user-only or tangential topics.
+- Have max_question_count assigned then and there: an integer 0–3, driven by the topic's weight (higher weight → more questions, e.g. 2–3; lower weight → 0–1).
 - Include source field:
   - "jd" if directly from required_skills or responsibilities
   - "resume" if directly from User.skills, User.projects, experience
@@ -74,23 +87,28 @@ Each Topic must:
 
 Topic weights within a phase must sum approximately to the phase weight.
 
+MAX_QUESTION_COUNT PER TOPIC (0–3)
+
+- Assign max_question_count at plan creation for every topic.
+- Range is 0 to 3 questions per topic. Decide based on the topic's weight and importance to the JD:
+  - High weight / JD-critical: 2 or 3 questions.
+  - Medium weight: 1 or 2 questions.
+  - Low weight / complimentary: 0 or 1 question.
+- Ensures the interview depth follows JD priorities, not the user's strengths.
+
 PRIORITIZATION LOGIC
-1. High priority:
-- required_skills
-- responsibilities
-- overlapping skills between User and JD
-2. Medium priority:
-- preferred_skills
-- strong project alignment
-3. Low priority:
-- unrelated resume skills
-- tangential background
+1. Highest weight:
+- required_skills, core responsibilities
+2. Medium weight:
+- preferred_skills, strong project alignment with JD, user-only skills
+3. Lower weight (complimentary only):
+- tangential background — candidate can show proficiency but these do not get primary weight
 
 If User experience < JD min_experience:
-Add topics to evaluate fundamentals and depth authenticity.
+Add topics to evaluate fundamentals and depth authenticity (JD-driven).
 
 If User experience > JD min_experience:
-Add system-level or architectural evaluation topics.
+Add system-level or architectural evaluation topics (JD-driven).
 
 COVERAGE REQUIREMENTS
 
@@ -101,10 +119,12 @@ Ensure:
 - At least one Topic evaluates behavioral or leadership traits if applicable.
 
 Do NOT:
+- Give primary weight to topics that are only on the User and not in the JD.
 - Invent skills not present in either User or JD unless logically inferred.
 - Leave any required_skill uncovered.
 
 WEIGHTING PRINCIPLES
+- Weights reflect JD and role needs first; user alignment is secondary.
 - Technical core should dominate for technical roles.
 - Behavioral should have lower weight unless leadership role.
 - Intro and Conclusion phases should have small weights.
@@ -129,14 +149,14 @@ Return ONLY a valid JSON array (list) of Phase objects matching this exact struc
         "topic_id": "string",
         "topic": "string",
         "source": "jd|resume|inferred",
-        "weight": 0.0
+        "weight": 0.0,
         "max_question_count": 0
       }}
     ]
   }}
 ]
 
-This corresponds to List[Phase], where each Phase has topics: List[Topic].
+Each topic must have both "weight" and "max_question_count" (0–3) set. This corresponds to List[Phase], where each Phase has topics: List[Topic].
 
 Do internal reasoning piecewise for User, JD, and each Phase schema instance, but output only the final JSON array.
 
