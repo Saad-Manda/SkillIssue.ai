@@ -4,7 +4,7 @@ from ..llm import llm
 from .prompt import generate_report_prompt
 from ...models.states.states import SystemState
 
-def generate_report(system_state: SystemState) -> SystemState:
+def report_node(system_state: SystemState) -> SystemState:
 
     if not system_state:
         return "## Error\nSession data could not be retrieved. Please try again."
