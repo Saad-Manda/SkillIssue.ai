@@ -25,8 +25,9 @@ def get_next_topic(plan, prev_phase, prev_topic_id):
 def get_current_topic(plan, current_phase, current_topic_id):
 
     found=False
+    current_topic = None
     for phase in (plan.phase):
-        if phase.name is current_phase:
+        if phase.name == current_phase:
             for topic in (phase.topics):
                 if topic.topic_id == current_topic_id:
                     current_topic = topic

@@ -1,4 +1,5 @@
 import json
+import re
 from langchain_core.messages import AIMessage
 
 from ..llm import llm
@@ -55,7 +56,12 @@ def router_node(system_state: SystemState) -> SystemState:
         response: AIMessage = llm.invoke(messages)
         preview = (response.content or "")[:120].replace("\n", "\\n")
         print(f"[router] llm_response_preview={preview}")
-        result = json.loads(response.content)
+        
+        raw = response.content.strip()
+        raw = re.sub(r"^```(?:json)?\s*", "", raw)
+        raw = re.sub(r"\s*```$", "", raw.strip())
+        result = json.loads(raw)
+        
     except Exception as e:
         print(f"[router] Error in LLM invocation: {e}")
         raise

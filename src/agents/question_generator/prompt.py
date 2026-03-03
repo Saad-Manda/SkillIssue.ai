@@ -90,7 +90,10 @@ def dependent_question_prompt(
     jd: JobDescription,
     phase: Phase,
 ) -> list:
-    current_phase_summary_json = current_phase_summary.model_dump_json(indent=2)
+    current_phase_summary = [
+        s.model_dump_json() if hasattr(s, 'model_dump_json') else s
+        for s in current_phase_summary
+    ]
     previous_k_turns_json = [t.model_dump() for t in previous_k_turns]
     jd_json = jd.model_dump_json(indent=2)
     phase_json = phase.model_dump_json(indent=2)
