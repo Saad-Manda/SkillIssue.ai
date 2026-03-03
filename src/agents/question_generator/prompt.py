@@ -15,7 +15,10 @@ def independent_question_prompt(
     phase: Phase,
     topic: Topic,
 ) -> list:
-    previous_phase_summaries_json = [s.model_dump() for s in previous_phase_summaries]
+    previous_phase_summaries_json = [
+        s.model_dump() if hasattr(s, 'model_dump') else s
+        for s in previous_phase_summaries
+    ]
     user_json = user_summary
     jd_json = jd.model_dump_json(indent=2)
     phase_json = phase.model_dump_json(indent=2)

@@ -4,6 +4,7 @@ from ...models.states.states import SystemState
 from ...models.states.redis_session import session_store
 from .metrics import calculate_turn_metrics
 from ...models.states.turn import Turn
+from ...models.states.metrics import Metrics
 
 def metrics_node(system_state: SystemState) -> SystemState:
     session_id = system_state.session_id
@@ -36,12 +37,12 @@ def metrics_node(system_state: SystemState) -> SystemState:
         chat_id=str(uuid4()),
         question=current_question,
         response=current_response,
-        metrics=results,
+        metrics=Metrics(**results),
         phase_name=current_phase,
         topic_id=current_topic_id,
     )
 
-    chat_history.append(current_turn)
+    chat_history.append(current_turn.model_dump())
 
     session_store.update(session_id, {
             "session_id": session_id,
@@ -49,4 +50,7 @@ def metrics_node(system_state: SystemState) -> SystemState:
         })
 
     print(f"[metric_calculator] done turns={len(chat_history)}")
-    return system_state
+    return system_state.model_copy(
+        update={
+            "should_generate_report": system_state.should_generate_report
+        })
