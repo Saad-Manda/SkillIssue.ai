@@ -1,7 +1,10 @@
 def get_next_topic(plan, prev_phase, prev_topic_id):
 
+    new_phase_idx = None
+    new_topic_idx = None
+
     for j, phase in enumerate(plan.phase):
-        if phase.name is prev_phase:
+        if phase.name == prev_phase:
             for i, topic in enumerate(phase.topics):
                 if topic.topic_id == prev_topic_id:
                     new_topic_idx = i+1

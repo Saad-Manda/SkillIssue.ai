@@ -4,7 +4,7 @@ from langchain_core.messages import AIMessage
 from ..llm import llm
 from .prompt import router_prompt
 from ...models.states.states import SystemState
-from ...models.states.redis_session import session_store
+from ...models.states.redis_session import parse_chat_history, session_store
 
 
 def router_node(system_state: SystemState) -> SystemState:
@@ -46,6 +46,7 @@ def router_node(system_state: SystemState) -> SystemState:
     ## Same Topic
     session_state = session_store.get(session_id)
     chat_history = session_state.get("chat_history", [])[:-k]
+    chat_history = parse_chat_history(chat_history)
     
     messages = router_prompt(chat_history=chat_history)
 

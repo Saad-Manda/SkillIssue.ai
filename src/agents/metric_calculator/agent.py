@@ -15,7 +15,12 @@ def metrics_node(system_state: SystemState) -> SystemState:
         f"topic_id={system_state.current_topic_id}"
     )
 
-    chat_history = session_state.get("chat_history") or []
+    chat_history_raw = session_state.get("chat_history") or []
+    chat_history_for_metrics = []
+    for t in chat_history_raw:
+        chat_history_for_metrics.append({"role": "user", "content": t["question"]})
+        chat_history_for_metrics.append({"role": "assistant", "content": t["response"]})
+    
     current_question = system_state.current_question
     current_response = system_state.current_response
     current_phase = system_state.current_phase_name
@@ -25,7 +30,7 @@ def metrics_node(system_state: SystemState) -> SystemState:
     results = calculate_turn_metrics(
         question=current_question,
         answer=current_response,
-        chat_history=chat_history,
+        chat_history=chat_history_for_metrics,
         behavioral_phase=(True if re.findall('behavior', current_phase.lower()) else False),
     )
     print(
@@ -42,14 +47,14 @@ def metrics_node(system_state: SystemState) -> SystemState:
         topic_id=current_topic_id,
     )
 
-    chat_history.append(current_turn.model_dump())
+    chat_history_raw.append(current_turn.model_dump())
 
     session_store.update(session_id, {
             "session_id": session_id,
-            "chat_history": chat_history
+            "chat_history": chat_history_raw
         })
 
-    print(f"[metric_calculator] done turns={len(chat_history)}")
+    print(f"[metric_calculator] done turns={len(chat_history_raw)}")
     return system_state.model_copy(
         update={
             "should_generate_report": system_state.should_generate_report

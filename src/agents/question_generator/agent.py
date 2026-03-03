@@ -4,7 +4,7 @@ from ..llm import llm
 from .prompt import independent_question_prompt, dependent_question_prompt
 from .get_topic import get_current_topic, get_next_topic
 from ...models.states.states import SystemState
-from ...models.states.redis_session import session_store
+from ...models.states.redis_session import session_store, parse_chat_history
 
 def question_generator_node(system_state: SystemState) -> SystemState:
 
@@ -29,7 +29,8 @@ def question_generator_node(system_state: SystemState) -> SystemState:
 
     phase_summary = session_state.get("phase_summary", [])
     raw_history = session_state.get("chat_history") or []
-    chat_history = raw_history[:-k] if k and k > 0 else raw_history
+    chat_histor_tot = parse_chat_history(raw_history)
+    chat_history = chat_histor_tot[:-k] if k and k > 0 else chat_histor_tot
 
     if reason == "TOPIC CHANGED":
         if chat_history:
