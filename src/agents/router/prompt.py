@@ -81,11 +81,14 @@ DECISION LOGIC (QUALITATIVE, NOT NUMERIC)
 
 OUTPUT FORMAT (STRICT)
 - You MUST return **only** a single JSON object with this exact shape:
+CRITICAL: Your response must start with `{` and end with `}`. 
+Do not include ```json, ```, or any other text outside the JSON object
 
 {
   "is_dependent": true or false,
   "reason": "short explanation (2–4 sentences) of your routing decision"
 }
+
 
 REASON FIELD REQUIREMENTS
 - Always provide a `reason` string, regardless of the decision.
@@ -110,7 +113,7 @@ CHAT HISTORY (all turns so far, newest last):
 
 Based on this chat_history alone, decide whether the next question
 should be independent (same-topic new angle) or dependent (follow-up)
-according to the rules above. Return ONLY the JSON object.
+according to the rules above.Return ONLY the raw JSON object. No markdown, no code fences, no explanation outside the JSON..
 """
 
     return [
