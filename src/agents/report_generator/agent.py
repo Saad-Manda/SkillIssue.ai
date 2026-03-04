@@ -1,17 +1,20 @@
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from .agent_utils.llm import llm
-from .agent_utils.prompt import generate_report_prompt
-from .agent_utils.redis_session import session_store
+from ..llm import llm
+from .prompt import generate_report_prompt
+from ...models.states.states import SystemState
+from ...models.states.redis_session import parse_chat_history, session_store
 
-def generate_report(state) -> str:
+def report_node(system_state: SystemState) -> SystemState:
 
-    if not state:
-        return "## Error\nSession data could not be retrieved. Please try again."
+    session_id = system_state.session_id
+    session_state = session_store.get(session_id)
+    print(f"[report_generator] start session_id={session_id}")
 
-    user_summary = state.get("user_summary", "N/A")
-    jd = state.get("current_jd", "N/A")
-    raw_history = state.get("chat_history", [])
+    user_summary = system_state.user_summary
+    jd = system_state.jd
+    raw_history = session_state.get("chat_history", [])
+    raw_history = parse_chat_history(raw_history)
     if not isinstance(raw_history, list):
         raw_history = []
 
@@ -19,7 +22,7 @@ def generate_report(state) -> str:
     # Converts list of messages (dicts or objects) into a readable script format
     formatted_transcript = ""
     for msg in raw_history:
-        # Handle if msg is a dict (common in session state) or an object
+        # Handle if msg is a dict (common in session system_state) or an object
         if isinstance(msg, dict):
             if "role" in msg or "content" in msg:
                 role = msg.get("role", "unknown").upper()
@@ -46,14 +49,22 @@ def generate_report(state) -> str:
     # 5. Invoke LLM
     messages = [
         SystemMessage(content=system_instruction),
-        HumanMessage(content=user_context_prompt),
-        SystemMessage(content=system_instruction),
         HumanMessage(content=user_context_prompt)
     ]
-
+    report = "## Error\nAn error occurred while generating the report."
     try:
+        print(
+            f"[report_generator] invoking llm messages={len(messages)} "
+            f"transcript_len={len(formatted_transcript)} user_summary_len={len(user_summary or '')}"
+        )
         response = llm.invoke(messages)
-        return response.content
+        report = response.content
     except Exception as e:
         # Log error here if you have a logger
-        return f"## Generation Error\nAn error occurred while generating the report: {str(e)}"
+        print(f"[report_generator] Generation Error: {str(e)}")
+
+    
+    system_state.final_report = report
+    print(f"[report_generator] done report_len={len(report or '')}")
+
+    return system_state
