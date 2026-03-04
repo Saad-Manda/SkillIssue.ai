@@ -1,9 +1,13 @@
 import json
-from typing import Any, Dict
-
 import redis
-
+from typing import Any, Dict
+from .turn import Turn
 from ...config import settings
+
+
+
+def parse_chat_history(raw: list) -> list[Turn]:
+    return [Turn(**t) if isinstance(t, dict) else t for t in raw]
 
 
 class RedisSessionStore:

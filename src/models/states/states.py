@@ -32,3 +32,4 @@ class SystemState(BaseModel):
     min_topics: int
     max_topics: int
     final_report: str
+    should_generate_report: bool = False

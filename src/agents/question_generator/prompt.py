@@ -1,4 +1,5 @@
-from typing import List
+import json
+from typing import Any, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -8,6 +9,19 @@ from ...models.states.phase_summary import PhaseSummary
 from ...models.states.turn import Turn
 
 
+def _to_pretty_json(value: Any) -> str:
+    if hasattr(value, "model_dump_json"):
+        return value.model_dump_json(indent=2)
+    if hasattr(value, "model_dump"):
+        return json.dumps(value.model_dump(), indent=2, ensure_ascii=False)
+    if isinstance(value, str):
+        return value
+    try:
+        return json.dumps(value, indent=2, ensure_ascii=False)
+    except TypeError:
+        return repr(value)
+
+
 def independent_question_prompt(
     previous_phase_summaries: List[PhaseSummary],
     user_summary: str,
@@ -15,11 +29,15 @@ def independent_question_prompt(
     phase: Phase,
     topic: Topic,
 ) -> list:
-    previous_phase_summaries_json = [s.model_dump() for s in previous_phase_summaries]
+    previous_phase_summaries_json = [
+        s.model_dump() if hasattr(s, "model_dump") else s
+        for s in previous_phase_summaries
+    ]
     user_json = user_summary
-    jd_json = jd.model_dump_json(indent=2)
-    phase_json = phase.model_dump_json(indent=2)
-    topic_json = topic.model_dump_json(indent=2)
+    jd_json = _to_pretty_json(jd)
+    phase_json = _to_pretty_json(phase)
+    topic_json = _to_pretty_json(topic)
+    previous_phase_summaries_json = _to_pretty_json(previous_phase_summaries_json)
 
     base_instruction = """
 You are a practical, industry-style Technical Interviewer generating exactly one interview question.
@@ -65,13 +83,7 @@ OUTPUT RULES:
 - Do NOT ask multi-part or layered questions.
 """
 
-    system_content = (
-        base_instruction
-        + "\n"
-        + mode_instruction
-        + "\n"
-        + constraints
-    )
+    system_content = base_instruction + "\n" + mode_instruction + "\n" + constraints
     human_content = context_block
 
     return [
@@ -87,10 +99,11 @@ def dependent_question_prompt(
     jd: JobDescription,
     phase: Phase,
 ) -> list:
-    current_phase_summary_json = current_phase_summary.model_dump_json(indent=2)
+    current_phase_summary_json = _to_pretty_json(current_phase_summary)
     previous_k_turns_json = [t.model_dump() for t in previous_k_turns]
-    jd_json = jd.model_dump_json(indent=2)
-    phase_json = phase.model_dump_json(indent=2)
+    jd_json = _to_pretty_json(jd)
+    phase_json = _to_pretty_json(phase)
+    previous_k_turns_json = _to_pretty_json(previous_k_turns_json)
 
     base_instruction = """
 You are a practical, industry-style Technical Interviewer generating exactly one interview question.
@@ -138,13 +151,7 @@ OUTPUT RULES:
 - Do NOT repeat a previously asked question.
 """
 
-    system_content = (
-        base_instruction
-        + "\n"
-        + mode_instruction
-        + "\n"
-        + constraints
-    )
+    system_content = base_instruction + "\n" + mode_instruction + "\n" + constraints
     human_content = context_block
 
     return [

@@ -39,8 +39,17 @@ def _build_graph():
     graph.add_edge("router", "question_generator")
     graph.add_edge("question_generator", "phase_summarizer")
     graph.add_edge("phase_summarizer", "metric_calculator")
-    graph.add_edge("metric_calculator", "router")
-    graph.add_edge("metric_calculator", "report_generator")
+    
+    def _route_after_metrics(state: SystemState) -> str:
+        if state.should_generate_report:
+            return "report_generator"
+        return "router"
+
+    graph.add_conditional_edges(
+        "metric_calculator",
+        _route_after_metrics,
+        {"router": "router", "report_generator": "report_generator"}
+    )
 
 
     app = graph.compile(

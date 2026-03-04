@@ -74,6 +74,8 @@ def _run_graph(state: SystemState, *, resume: bool = False) -> SystemState:
     - When resume=True, we continue from the last interrupted node for this
       session_id, merging in the updated fields from `state`.
     """
+    
+    print(f"[_run_graph] resume={resume}, thread_id={state.session_id!r}") 
     # Base config for this session
     config = {
         "configurable": {"thread_id": state.session_id},
@@ -81,12 +83,10 @@ def _run_graph(state: SystemState, *, resume: bool = False) -> SystemState:
     }
 
     if resume:
-        # Resume from the last checkpoint while applying the updated fields
-        # from `state`. LangGraph merges this partial state into the stored
-        # checkpoint before continuing from the interrupted node.
-        input_payload = state
+        app.update_state(config, {"current_response": state.current_response})
+        input_payload = None
+
     else:
-        # First run for this session: start from the graph entry point.
         input_payload = state
 
     result = app.invoke(input_payload, config=config)
@@ -105,6 +105,7 @@ def start_session(user_json: str, jd_json: str, interview_length: str):
         return "", None, chat, 0, 0
 
     session_id = str(uuid.uuid4())
+    print(f"[start_session] created session_id={session_id!r}")
     initial_state = _build_initial_state(session_id, user, jd, interview_length)
     # First graph run: start from entry node (user_summarizer/planner/etc.).
     state = _run_graph(initial_state, resume=False)
@@ -120,6 +121,8 @@ def start_session(user_json: str, jd_json: str, interview_length: str):
 
 
 def submit_answer(session_id: str, state: SystemState | None, answer: str, chat):
+    print(f"[submit_answer] session_id param={session_id!r}, state.session_id={state.session_id if state else 'STATE IS NONE'!r}") 
+
     if not session_id or state is None:
         return state, (chat or []), 0, 0
 
@@ -143,10 +146,17 @@ def submit_answer(session_id: str, state: SystemState | None, answer: str, chat)
     return next_state, chat, turn_count, store_count
 
 
-def print_report(state: SystemState | None):
-    if state is None or not state.final_report:
-        return "No report available yet."
-    return state.final_report
+def print_report(state: SystemState | None, session_id: str):
+    if state is None:
+        return "No report available yet.", None
+    
+    app.update_state(
+        {"configurable": {"thread_id": session_id}},
+        {"should_generate_report": True}
+    )
+    updated_state = state.model_copy(update={"should_generate_report": True})
+    final_state = _run_graph(updated_state, resume=True)
+    return final_state.final_report, final_state
 
 
 with gr.Blocks(title="SkillIssue.ai") as demo:
@@ -345,8 +355,8 @@ with gr.Blocks(title="SkillIssue.ai") as demo:
 
     report_btn.click(
         fn=print_report,
-        inputs=[system_state_state],
-        outputs=[report_output],
+        inputs=[system_state_state, session_id_state],
+        outputs=[report_output, system_state_state],
     ).then(
         fn=_show_report_modal,
         outputs=[report_modal],
