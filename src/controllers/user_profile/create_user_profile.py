@@ -15,7 +15,7 @@ from ...schemas.leadership import Leadership as LeadershipSchema
 async def create_user_profile(db: AsyncSession, user_profile: dict):
     user = UserSchema(
         user_id = str(uuid4()),
-        name = user_profile["name"],
+        name = user_profile.get("name"),
         email = user_profile.get("email"),
         mobile = user_profile.get("mobile"),
         github_url = user_profile.get("github_url"),

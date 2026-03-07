@@ -24,7 +24,7 @@ class JobDescription(BaseModel):
     job_type: Emp_Type
     loc_type: Optional[Loc_Type] = None
     location: Optional[str] = ""
-    salary: Optional[Salary] = None
+    salary: Optional[float] = None
     min_experience: float
     responsibilities: List[str]
     required_qualification: str

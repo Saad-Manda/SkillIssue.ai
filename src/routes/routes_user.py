@@ -23,7 +23,7 @@ async def create_user_endpoint(user_profile: dict, db: AsyncSession = Depends(ge
 
 @router.delete("/{user_id}")
 async def delete_user_endpoint(user_id: str, db: AsyncSession = Depends(get_db)):
-    return await delete_user_profile(user_id, db)
+    return await delete_user_profile(db, user_id)
 
 @router.patch("/{user_id}")
 async def update_user_endpoint(user_id: str, user_profile: dict, db: AsyncSession = Depends(get_db)):
