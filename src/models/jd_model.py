@@ -1,25 +1,12 @@
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from .util_model import Emp_Type,  Loc_Type, Salary
 
 
 
-# class JobDescription(BaseModel):
-#     job_title: str = Field(...)
-#     job_type: Emp_Type = Field(...)
-#     loc_type: Optional[Loc_Type] = None
-#     location: Optional[str] = ""
-#     salary: Optional[Salary] = None
-#     min_experience: float = Field(...)
-#     responsibilities: List[str] = Field(...)
-#     required_qualification: str = Field(...)
-#     required_skills: List[str] = Field(...)
-#     preferred_skills: Optional[List[str]] = []
-#     description: Optional[str] = ""
-
-
-
 class JobDescription(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     job_title: str
     job_type: Emp_Type
     loc_type: Optional[Loc_Type] = None
@@ -31,4 +18,3 @@ class JobDescription(BaseModel):
     required_skills: List[str]
     preferred_skills: Optional[List[str]] = []
     description: Optional[str] = ""
-

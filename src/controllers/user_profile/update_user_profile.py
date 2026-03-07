@@ -11,7 +11,7 @@ from ...schemas.leadership import Leadership as LeadershipSchema
 
 async def update_user_profile(db: AsyncSession, user_id: str, user_profile: dict):
     # Fetch the existing user
-    query = select(UserModel).where(UserModel.user_id == user_id)
+    query = select(UserSchema).where(UserSchema.user_id == user_id)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
 

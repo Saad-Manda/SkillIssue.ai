@@ -9,12 +9,14 @@ from ...schemas.user import User as UserSchema
 from .utils import _parse_json, _build_initial_state, _run_graph
 
 
-def start_session(user_id: str, jd_id: str, interview_length: str, db: AsyncSession):
-    try:
-        user = get_user_profile(db, user_id)
-        jd = get_jd(db, jd_id)
-    except Exception as e:
-        return {"error": f"Failed to Fetch Credentials {e}"}
+async def start_session(user_id: str, jd_id: str, interview_length: str, db: AsyncSession):
+    user = await get_user_profile(db, user_id)
+    jd = await get_jd(db, jd_id)
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not jd:
+        raise HTTPException(status_code=404, detail="Job Description not found")
 
     session_id = str(uuid4())
     print(f"[start_session] created session_id={session_id!r}")
