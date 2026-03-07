@@ -5,6 +5,7 @@ from sqlalchemy import select, delete, join
 from typing import Optional, List
 from fastapi import HTTPException
 
+from ...models.jd_model import JobDescription as JobDescriptionModel
 from ...schemas.jd import JobDescription as JobDescriptionSchema
 
 async def get_jd(db: AsyncSession, jd_id: str):
@@ -14,7 +15,7 @@ async def get_jd(db: AsyncSession, jd_id: str):
         
         if not result:
             return None
-        return result
+        return JobDescriptionModel.model_validate(result)
     
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")

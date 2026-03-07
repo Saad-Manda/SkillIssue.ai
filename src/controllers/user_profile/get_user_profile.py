@@ -26,7 +26,7 @@ async def get_user_profile(db: AsyncSession, user_id: str):
         
         if not result:
             return None
-        return result
+        return UserModel.model_validate(result)
     
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
