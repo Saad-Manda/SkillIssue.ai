@@ -1,8 +1,7 @@
-from enum import Enum
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
-from sqlalchemy import Column, Integer, DateTime, String, JSON, Text, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, String, JSON, Text, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from .base import Base
@@ -21,8 +20,8 @@ class Experience(Base):
     experience_id = Column(String, primary_key=True, index=True)
     role = Column(String, nullable=False)
     company = Column(String, nullable=False)
-    emp_type = Column(Enum(EmpType), nullable=True)
-    loc_type = Column(Enum(LocType), nullable=True)
+    emp_type = Column(Enum[EmpType], nullable=True)
+    loc_type = Column(Enum[LocType], nullable=True)
     skills_used = Column(ARRAY(String), nullable=True)
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)

@@ -11,7 +11,7 @@ class User(Base):
 
     user_id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    email = Column(EmailStr, nullable=True)
+    email = Column(String, nullable=True)
     mobile = Column(String, nullable=True)
     github_url = Column(String, nullable=True)
     linkedin_url = Column(String, nullable=True)

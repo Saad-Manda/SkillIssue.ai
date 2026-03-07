@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
-def health_check(req, res):
+def health_check():
     try:
-        res.json({"message": "health check passed"}).status(200).end()
+        return {"message": "health check passed"}
     except Exception as e:
         raise HTTPException(status_code = 500, detail = {"error": f"Server error {e}"})

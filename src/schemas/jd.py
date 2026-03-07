@@ -1,8 +1,7 @@
-from enum import Enum
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
-from sqlalchemy import Column, Integer, DateTime, String, JSON, Text, Float
+from sqlalchemy import Column, Integer, DateTime, String, JSON, Text, Float, Enum
 from sqlalchemy.dialects.postgresql import ARRAY
 from .base import Base
 
@@ -19,8 +18,8 @@ class JobDescription(Base):
 
     jd_id = Column(String, primary_key=True, index=True)
     job_title = Column(String, nullable=False)
-    job_type = Column(Enum(EmpType), nullable=True)
-    loc_type = Column(Enum(LocType), nullable=True)
+    job_type = Column(Enum[EmpType], nullable=True)
+    loc_type = Column(Enum[LocType], nullable=True)
     location = Column(String, nullable=True)
     salary = Column(Float, nullable=True)
     min_experience = Column(Float, nullable=False)

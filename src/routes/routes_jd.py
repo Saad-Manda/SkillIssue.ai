@@ -9,7 +9,7 @@ from ..controllers.job_description.create_jd import create_jd
 from ..controllers.job_description.delete_jd import delete_jd
 
 
-router = APIRouter(prefix="/api/v1/jd", tags=["job_description"])
+router = APIRouter(prefix="/api/v1/jd", tags=["job_descriptions"])
 
 @router.get("/{jd_id}", response_model=JobDescriptionModel)
 async def get_jd_endpoint(jd_id: str, db: AsyncSession = Depends(get_db)):
