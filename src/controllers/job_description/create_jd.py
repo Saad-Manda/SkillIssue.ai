@@ -21,7 +21,7 @@ async def create_jd(db: AsyncSession, jd_payload: dict):
         required_qualification = jd_payload.get("required_qualification"),
         required_skills = jd_payload.get("required_skills"),
         preferred_skills = jd_payload.get("preferred_skills"),
-        description = jd_payload.get("description", "")
+        description = jd_payload.get("description")
     )
     db.add(jd)
     await db.commit()
