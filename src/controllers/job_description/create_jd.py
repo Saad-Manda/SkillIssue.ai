@@ -17,10 +17,10 @@ async def create_jd(db: AsyncSession, jd_payload: dict):
         location = jd_payload.get("location", ""),
         salary = jd_payload.get("salary", 0.0),
         min_experience = jd_payload.get("min_experience"),
-        responsibilitites = jd_payload.get("responsibilitites", ""),
-        required_qualification = jd_payload.get("required_qualification", ""),
-        required_skills = jd_payload.get("required_skills", []),
-        preferred_skills = jd_payload.get("preferred_skills", []),
+        responsibilities = jd_payload.get("responsibilities"),
+        required_qualification = jd_payload.get("required_qualification"),
+        required_skills = jd_payload.get("required_skills"),
+        preferred_skills = jd_payload.get("preferred_skills"),
         description = jd_payload.get("description", "")
     )
     db.add(jd)

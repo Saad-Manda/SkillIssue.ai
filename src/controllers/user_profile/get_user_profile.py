@@ -18,6 +18,7 @@ async def get_user_profile(db: AsyncSession, user_id: str):
     )
     result = await db.execute(statement=stmt)
     user_obj = result.scalar_one_or_none()
+
     
     if not user_obj:
         return None

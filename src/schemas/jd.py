@@ -7,12 +7,12 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from .base import Base
 
 class EmpType(Enum):
-    PART_TIME = "part_time"
-    FULL_TIME = "full_time"
+    part_time = "part_time"
+    full_time = "full_time"
 
 class LocType(Enum):
-    REMOTE = "remote"
-    ONSITE = "onsite"
+    remote = "remote"
+    onsite = "onsite"
 
 class JobDescription(Base):
     __tablename__ = "job_descriptions"
