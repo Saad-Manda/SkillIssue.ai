@@ -19,7 +19,7 @@ async def get_jd_endpoint(jd_id: str, db: AsyncSession = Depends(get_db)):
     return jd
 
 @router.post("/", response_model=JobDescriptionModel)
-async def create_jd_endpoint(jd_payload: dict, db: AsyncSession = Depends(get_db)):
+async def create_jd_endpoint(jd_payload: JobDescriptionModel, db: AsyncSession = Depends(get_db)):
     return await create_jd(db, jd_payload)
 
 @router.delete("/{jd_id}")

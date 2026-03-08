@@ -6,9 +6,10 @@ from typing import Optional, List
 from fastapi import HTTPException
 
 from ...schemas.jd import JobDescription as JobDescriptionSchema
+from ...models.jd_model import JobDescription as JobDescriptionModel
 
 
-async def create_jd(db: AsyncSession, jd_payload: dict):
+async def create_jd(db: AsyncSession, jd_payload: JobDescriptionModel):
     jd = JobDescriptionSchema(
         jd_id = str(uuid4()),
         job_title = jd_payload.get("job_title"),
