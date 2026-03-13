@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Body
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
 
@@ -18,7 +18,7 @@ async def get_user_endpoint(user_id: str, db: AsyncSession = Depends(get_db)):
     return user
 
 @router.post("/", response_model=UserModel)
-async def create_user_endpoint(user_profile: dict, db: AsyncSession = Depends(get_db)):
+async def create_user_endpoint(user_profile: UserModel, db: AsyncSession = Depends(get_db)):
     return await create_user_profile(db, user_profile)
 
 @router.delete("/{user_id}")
