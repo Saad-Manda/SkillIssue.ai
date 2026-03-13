@@ -9,7 +9,6 @@ from typing import List, Optional
 class User(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    user_id: str
     name: str
     email: Optional[EmailStr]
     mobile: Optional[str] = ""
