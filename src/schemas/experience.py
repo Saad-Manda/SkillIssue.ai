@@ -8,11 +8,11 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from .base import Base
 
-class EmpType(Enum):
+class EmpType(str, Enum):
     part_time = "part_time"
     full_time = "full_time"
 
-class LocType(Enum):
+class LocType(str, Enum):
     remote = "remote"
     onsite = "onsite"
 
@@ -22,8 +22,8 @@ class Experience(Base):
     experience_id = Column(String, primary_key=True, index=True)
     role = Column(String, nullable=False)
     company = Column(String, nullable=False)
-    emp_type = Column(SQLEnum(EmpType), nullable=True)
-    loc_type = Column(SQLEnum(LocType), nullable=True)
+    emp_type = Column(SQLEnum(EmpType, native_enum=False, validate_strings=True), nullable=True)
+    loc_type = Column(SQLEnum(LocType, native_enum=False, validate_strings=True), nullable=True)
     skills_used = Column(ARRAY(String), nullable=True)
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)
