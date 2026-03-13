@@ -1,16 +1,18 @@
 import json
 import uuid
+
 from ...agents.app import app
-from ...models.user_model import User
 from ...models.jd_model import JobDescription
 from ...models.plan_model import Plan
 from ...models.states.states import SystemState
+from ...models.user_model import User
 
 
 def _parse_json(text: str) -> dict:
     if not text:
         return {}
     return json.loads(text)
+
 
 def _build_initial_state(
     session_id: str,
@@ -43,6 +45,7 @@ def _build_initial_state(
         final_report="",
     )
 
+
 def _run_graph(state: SystemState, *, resume: bool = False) -> SystemState:
     """
     Run or resume the LangGraph interview flow.
@@ -51,8 +54,8 @@ def _run_graph(state: SystemState, *, resume: bool = False) -> SystemState:
     - When resume=True, we continue from the last interrupted node for this
       session_id, merging in the updated fields from `state`.
     """
-    
-    print(f"[_run_graph] resume={resume}, thread_id={state.session_id!r}") 
+
+    print(f"[_run_graph] resume={resume}, thread_id={state.session_id!r}")
     # Base config for this session
     config = {
         "configurable": {"thread_id": state.session_id},
@@ -68,3 +71,20 @@ def _run_graph(state: SystemState, *, resume: bool = False) -> SystemState:
 
     result = app.invoke(input_payload, config=config)
     return SystemState.model_validate(result)
+
+
+def _load_graph_state(session_id: str) -> SystemState | None:
+    """
+    Load the latest checkpointed SystemState for a session.
+
+    The POST answer route should use this instead of expecting the client
+    to send back the full in-memory state object.
+    """
+    config = {
+        "configurable": {"thread_id": session_id},
+        "recursion_limit": 50,
+    }
+    snapshot = app.get_state(config)
+    if snapshot is None or snapshot.values is None:
+        return None
+    return SystemState.model_validate(snapshot.values)
