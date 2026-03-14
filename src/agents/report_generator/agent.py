@@ -4,6 +4,7 @@ from ..llm import llm
 from .prompt import generate_report_prompt
 from ...models.states.states import SystemState
 from ...models.states.redis_session import parse_chat_history, session_store
+from ...models.states.turn import Turn
 
 def report_node(system_state: SystemState) -> SystemState:
 
@@ -17,28 +18,97 @@ def report_node(system_state: SystemState) -> SystemState:
     raw_history = parse_chat_history(raw_history)
     if not isinstance(raw_history, list):
         raw_history = []
-
+    print(type(raw_history[0]), raw_history[0].model_dump() if hasattr(raw_history[0], "model_dump") else raw_history[0])
     # 2. Format Chat History for the LLM
-    # Converts list of messages (dicts or objects) into a readable script format
+    # Convert stored turns into a readable interview script with metrics
     formatted_transcript = ""
     for msg in raw_history:
-        # Handle if msg is a dict (common in session system_state) or an object
-        if isinstance(msg, dict):
-            if "role" in msg or "content" in msg:
-                role = msg.get("role", "unknown").upper()
-                content = msg.get("content", "")
-            elif "type" in msg and "data" in msg and isinstance(msg.get("data"), dict):
-                role = str(msg.get("type", "unknown")).upper()
-                content = msg["data"].get("content", "")
-            else:
-                role = "UNKNOWN"
-                content = ""
-        else:
-            # Fallback if it's a LangChain message object
-            role = getattr(msg, "type", "unknown").upper()
-            content = getattr(msg, "content", "")
+        # Normal case: Turn objects from parse_chat_history
+        if isinstance(msg, Turn):
+            phase = msg.phase_name
+            topic_id = msg.topic_id
+            question = msg.question
+            response_text = msg.response
+            metrics = msg.metrics
 
-        formatted_transcript += f"[{role}]: {content}\n\n"
+            metrics_text = ""
+            if metrics is not None:
+                try:
+                    metrics_dict = metrics.model_dump()
+                except AttributeError:
+                    metrics_dict = dict(metrics)
+                # Build a concise, single-line metrics summary for the LLM
+                metrics_pairs = [
+                    f"{k}={v}"
+                    for k, v in metrics_dict.items()
+                    if k not in {"RFD_flags", "STAR_components"}
+                ]
+                rfd_flags = metrics_dict.get("RFD_flags") or []
+                if rfd_flags:
+                    metrics_pairs.append(
+                        "RFD_flags=" + " | ".join(str(f) for f in rfd_flags)
+                    )
+                metrics_text = "; ".join(metrics_pairs)
+
+            formatted_transcript += (
+                f"[PHASE={phase} TOPIC={topic_id}]\n"
+                f"[INTERVIEWER]: {question}\n"
+                f"[CANDIDATE]: {response_text}\n"
+            )
+            if metrics_text:
+                formatted_transcript += f"[METRICS]: {metrics_text}\n"
+            formatted_transcript += "\n"
+
+        # Fallbacks for older / alternative shapes (dicts, LC messages, etc.)
+        elif isinstance(msg, dict) and "question" in msg and "response" in msg:
+            phase = msg.get("phase_name", "")
+            topic_id = msg.get("topic_id", "")
+            metrics = msg.get("metrics")
+
+            metrics_text = ""
+            if isinstance(metrics, dict):
+                metrics_pairs = [
+                    f"{k}={v}"
+                    for k, v in metrics.items()
+                    if k not in {"RFD_flags", "STAR_components"}
+                ]
+                rfd_flags = metrics.get("RFD_flags") or []
+                if rfd_flags:
+                    metrics_pairs.append(
+                        "RFD_flags=" + " | ".join(str(f) for f in rfd_flags)
+                    )
+                metrics_text = "; ".join(metrics_pairs)
+
+            formatted_transcript += (
+                f"[PHASE={phase} TOPIC={topic_id}]\n"
+                f"[INTERVIEWER]: {msg.get('question', '')}\n"
+                f"[CANDIDATE]: {msg.get('response', '')}\n"
+            )
+            if metrics_text:
+                formatted_transcript += f"[METRICS]: {metrics_text}\n"
+            formatted_transcript += "\n"
+
+        else:
+            # Generic role/content fallback
+            if isinstance(msg, dict):
+                if "role" in msg or "content" in msg:
+                    role = msg.get("role", "unknown").upper()
+                    content = msg.get("content", "")
+                elif (
+                    "type" in msg
+                    and "data" in msg
+                    and isinstance(msg.get("data"), dict)
+                ):
+                    role = str(msg.get("type", "unknown")).upper()
+                    content = msg["data"].get("content", "")
+                else:
+                    role = "UNKNOWN"
+                    content = ""
+            else:
+                role = getattr(msg, "type", "unknown").upper()
+                content = getattr(msg, "content", "")
+
+            formatted_transcript += f"[{role}]: {content}\n\n"
 
     # 3. Construct the Prompt
     # We use a comprehensive system instruction to define the persona and output format
