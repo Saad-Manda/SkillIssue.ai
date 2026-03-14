@@ -1,10 +1,12 @@
 from datetime import date
 from typing import List, Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 
 class LeaderShip(BaseModel):
-    commitee_name: str = Field(...)
+    model_config = ConfigDict(from_attributes=True)
+
+    committee_name: str = Field(...)
     position: str = Field(...)
     skills_used: Optional[List[str]] = []
     description: Optional[str] = ""

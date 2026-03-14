@@ -209,3 +209,6 @@ __marimo__/
 
 # Gradio
 .gradio/
+
+# DataGrip
+.idea/

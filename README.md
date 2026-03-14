@@ -118,9 +118,16 @@ SkillIssue.ai/
 
 ### Running the Application
 
-You can interact with SkillIssue.ai through the Gradio web interface.
+You can interact with SkillIssue.ai through the FastAPI backend or the Gradio web interface.
 
-#### Start the Gradio UI
+#### 1. Start the FastAPI Server
+For API access and integration:
+```bash
+uvicorn src.main:app --reload
+```
+The API will be available at `http://localhost:8000`. You can access the Swagger UI at `http://localhost:8000/docs`.
+
+#### 2. Start the Gradio UI
 For a visual, interactive interview experience:
 ```bash
 python -m src.gradio
@@ -129,5 +136,5 @@ The UI will be accessible at `http://localhost:7860`.
 
 ---
 
-## License
+## 📜 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
