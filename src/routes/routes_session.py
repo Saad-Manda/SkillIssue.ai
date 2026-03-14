@@ -39,3 +39,10 @@ async def submit_answer_endpoint(session_id: str, payload: SubmitAnswerRequest):
         "store_count": store_count,
         "chat": chat,
     }
+
+@router.get("/{session_id}/report")
+async def get_report_endpoint(session_id: str):
+    report, state = get_report(session_id)
+    return {
+        "report": report
+    }

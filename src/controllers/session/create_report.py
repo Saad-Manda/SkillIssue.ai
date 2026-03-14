@@ -1,9 +1,10 @@
-from .utils import _run_graph
+from .utils import _run_graph, _load_graph_state
 from ...agents.app import app
 from ...models.states.states import SystemState
 
 
-def get_report(state: SystemState | None, session_id: str):
+def get_report(session_id: str):
+    state = _load_graph_state(session_id)
     if state is None:
         return "No report available yet.", None
     
