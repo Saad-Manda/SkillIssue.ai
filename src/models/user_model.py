@@ -10,7 +10,10 @@ class User(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     name: str
-    email: Optional[EmailStr]
+    username: str
+    email: EmailStr
+    hashed_password: str
+    is_active: bool = True
     mobile: Optional[str] = ""
     github_url: Optional[str] = ""
     linkedin_url: Optional[str] = ""
