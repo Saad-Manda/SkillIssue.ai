@@ -14,7 +14,7 @@ class User(Base):
     username = Column(String, unique=True)
     email = Column(String, nullable=False, unique=True)
     hashed_password = Column(String)
-    is_active = Column(Boolean, nullable=False, default=True
+    is_active = Column(Boolean, nullable=False, default=True)
     name = Column(String, nullable=False)
     mobile = Column(String, nullable=True)
     github_url = Column(String, nullable=True)

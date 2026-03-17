@@ -14,4 +14,5 @@ class TokenPayload(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+    email: Optional[str] = None
     roles: List[str] = ["user"]

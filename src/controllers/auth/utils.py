@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete, join
+from sqlalchemy import select, delete, join, or_
 from sqlalchemy.orm import selectinload
 
 from ...models.user_model import User as UserModel
@@ -13,7 +13,7 @@ from ...config import settings
 
 pswd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
-def create_access_token(data: dict):
+async def create_access_token(data: dict):
     header = {'alg': settings.ALGORITHM}
     expire = datetime.now(timezone.utc) + timedelta(settings.ACCESS_TOKEN_EXPIRY_MINUTES)
     payload = data.copy()
@@ -31,13 +31,16 @@ def verify_token(token: str):
     except JoseError:
         raise HTTPException(status_code=401, detail="Couldn't validate credentials")
 
-def verify_pswd(plain_pswd, hashed_pswd):
+async def hash_password(pswd: str):
+    return pswd_context.hash(pswd)
+
+def verify_password(plain_pswd, hashed_pswd):
     return pswd_context.verify(plain_pswd, hashed_pswd)
 
-async def get_user_profile(db: AsyncSession, username: str):
+async def get_user_to_check(db: AsyncSession, email: str, username: str):
     stmt = (
         select(UserSchema)
-        .where(UserSchema.username == username)
+        .where(or_(UserSchema.username == username, UserSchema.email == email))
     )
     result = await db.execute(statement=stmt)
     user_obj = result.scalar_one_or_none()

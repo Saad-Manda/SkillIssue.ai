@@ -29,7 +29,7 @@ class User(UserPublic):
 class SignupRequest(BaseModel):
     email: EmailStr
     password: str
-    username: Optional[str]
+    username: str
 
 class LoginRequest(BaseModel):
     email: EmailStr
