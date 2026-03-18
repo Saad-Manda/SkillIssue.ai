@@ -18,8 +18,8 @@ async def get_user_endpoint(user_id: str, db: AsyncSession = Depends(get_db)):
     return user
 
 @router.post("/", response_model=UserModel)
-async def create_user_endpoint(user_profile: UserModel, db: AsyncSession = Depends(get_db)):
-    return await create_user_profile(db, user_profile)
+async def create_user_endpoint(user_profile: UserModel, signup_token: str, db: AsyncSession = Depends(get_db)):
+    return await create_user_profile(db, user_profile, signup_token)
 
 @router.delete("/{user_id}")
 async def delete_user_endpoint(user_id: str, db: AsyncSession = Depends(get_db)):

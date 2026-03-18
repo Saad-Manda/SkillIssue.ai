@@ -20,6 +20,13 @@ async def create_access_token(data: dict):
     payload.update({'exp': expire})
     return jwt.encode(header, payload, settings.SECRET_KEY).decode('utf-8')
 
+async def create_signup_token(data: dict):
+    header = {'alg': settings.ALGORITHM}
+    expire = datetime.now(timezone.utc) + timedelta(settings.ACCESS_TOKEN_EXPIRY_MINUTES / 10)
+    payload = data.copy()
+    payload.update({'exp': expire})
+    return jwt.encode(header, payload, settings.SECRET_KEY).decode('utf-8')
+
 def verify_token(token: str):
     try:
         claims = jwt.decode(token, settings.SECRET_KEY)

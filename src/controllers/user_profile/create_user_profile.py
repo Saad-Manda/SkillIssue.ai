@@ -4,20 +4,26 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from ..utils import verify_signup_token
 from ...models.user_model import User as UserModel
+from ...models.user_model import SignupResponse
 from ...schemas.education import Education as EducationSchema
 from ...schemas.experience import Experience as ExperienceSchema
 from ...schemas.leadership import Leadership as LeadershipSchema
 from ...schemas.project import Project as ProjectSchema
 from ...schemas.user import User as UserSchema
 
-async def create_user_profile(db: AsyncSession, user_profile: UserModel):
+async def create_user_profile(
+    db: AsyncSession, user_profile: UserModel, signup_response: SignupResponse
+):
+    cred = verify_signup_token(signup_response.signup_token)
+
     user = UserSchema(
         user_id=str(uuid4()),
         name=user_profile.name,
-        username=user_profile.username,
-        email=user_profile.email,
-        hashed_password=user_profile.hashed_password,
+        username=cred.get('sub'),
+        email=cred.get('email'),
+        hashed_password=cred.get('hashed_password'),
         is_active=user_profile.is_active,
         mobile=user_profile.mobile,
         github_url=user_profile.github_url,

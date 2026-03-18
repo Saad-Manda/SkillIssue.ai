@@ -31,6 +31,10 @@ class SignupRequest(BaseModel):
     password: str
     username: str
 
+class SignupResponse(BaseModel):
+    access_token: str
+    signup_token: str
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
