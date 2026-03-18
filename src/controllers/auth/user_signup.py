@@ -9,13 +9,13 @@ async def signup(db: AsyncSession, payload: SignupRequest):
     
     if user:
         if user.email == payload.email and user.username == payload.username:
-            raise HTTPException(status_code=400, detail="User already exist")    #Login controller
+            raise HTTPException(status_code=409, detail="User already exists")    #Login controller
         elif user.email == payload.email:
-            raise HTTPException(status_code=400, detail="User with this email already exist")
+            raise HTTPException(status_code=409, detail="Email already in use")
         elif user.username == payload.username:
-            raise HTTPException(status_code=400, detail="Username already in use")
+            raise HTTPException(status_code=409, detail="Username already in use")
     else:
-        raise HTTPException(status_code=400, detail="Missing Credentials")
+        raise HTTPException(status_code=422, detail="Missing or invalid signup credentials")
             
     hashed_password = await hash_password(payload.password)
     
