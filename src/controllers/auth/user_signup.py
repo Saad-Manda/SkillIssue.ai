@@ -14,22 +14,20 @@ async def signup(db: AsyncSession, payload: SignupRequest):
             raise HTTPException(status_code=409, detail="Email already in use")
         elif user.username == payload.username:
             raise HTTPException(status_code=409, detail="Username already in use")
-    else:
-        raise HTTPException(status_code=422, detail="Missing or invalid signup credentials")
             
     hashed_password = await hash_password(payload.password)
     
     access_data = {
-        'email': user.email,
-        'sub': user.username,
+        'email': payload.email,
+        'sub': payload.username,
         'role': ['user']
     }
     access_token = await create_access_token(access_data)
 
     signup_data = {
-        'email': user.email,
+        'email': payload.email,
         'hashed_password': hashed_password,
-        'sub': user.username,
+        'sub': payload.username,
         'role': ['user']
     }
     signup_token = await create_signup_token(signup_data)

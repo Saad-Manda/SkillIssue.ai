@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, join, or_
 from sqlalchemy.orm import selectinload
+import hashlib
 
 from ...models.user_model import User as UserModel
 from ...schemas.user import User as UserSchema
@@ -11,7 +12,7 @@ from authlib.jose import JoseError, jwt
 from fastapi import HTTPException
 from ...config import settings
 
-pswd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+pswd_context = CryptContext(schemes=['argon2'], deprecated='auto')
 
 async def create_access_token(data: dict):
     header = {'alg': settings.ALGORITHM}
@@ -39,10 +40,12 @@ def verify_token(token: str):
         raise HTTPException(status_code=401, detail="Couldn't validate credentials")
 
 async def hash_password(pswd: str):
-    return pswd_context.hash(pswd)
+    sha = hashlib.sha256(pswd.encode()).hexdigest()
+    return pswd_context.hash(sha)
 
 def verify_password(plain_pswd, hashed_pswd):
-    return pswd_context.verify(plain_pswd, hashed_pswd)
+    sha = hashlib.sha256(plain_pswd.encode()).hexdigest()
+    return pswd_context.verify(sha, hashed_pswd)
 
 async def get_user_to_check(db: AsyncSession, email: str, username: str):
     stmt = (

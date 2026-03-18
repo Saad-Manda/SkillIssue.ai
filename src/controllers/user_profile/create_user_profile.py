@@ -14,9 +14,9 @@ from ...schemas.project import Project as ProjectSchema
 from ...schemas.user import User as UserSchema
 
 async def create_user_profile(
-    db: AsyncSession, user_profile: UserModel, signup_response: SignupResponse
+    db: AsyncSession, user_profile: UserModel, signup_token
 ):
-    cred = verify_signup_token(signup_response.signup_token)
+    cred = verify_signup_token(signup_token)
 
     user = UserSchema(
         user_id=str(uuid4()),
