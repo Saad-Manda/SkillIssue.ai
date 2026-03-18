@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete, join, or_
+from sqlalchemy import select, delete, join, or_, and_
 from sqlalchemy.orm import selectinload
 import hashlib
 
@@ -51,6 +51,18 @@ async def get_user_to_check(db: AsyncSession, email: str, username: str):
     stmt = (
         select(UserSchema)
         .where(or_(UserSchema.username == username, UserSchema.email == email))
+    )
+    result = await db.execute(statement=stmt)
+    user_obj = result.scalar_one_or_none()
+
+    if not user_obj:
+        return None
+    return user_obj
+
+async def get_user_for_login(db: AsyncSession, email: str, username: str):
+    stmt = (
+        select(UserSchema)
+        .where(and_(UserSchema.username == username, UserSchema.email == email))
     )
     result = await db.execute(statement=stmt)
     user_obj = result.scalar_one_or_none()
