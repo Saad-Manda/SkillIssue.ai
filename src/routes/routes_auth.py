@@ -29,10 +29,11 @@ async def login_endpoint(payload: LoginRequest, db: AsyncSession = Depends(get_d
 
 @router.post("/logout")
 async def logout_endpoint(
-    authorization: str = Header(default=None),
+    authorization: str,
     db: AsyncSession = Depends(get_db),
 ):
     try:
+        print("Authorization Header:", authorization)
         if not authorization or not authorization.startswith("Bearer "):
             raise HTTPException(status_code=401, detail="Invalid authorization header")
 
