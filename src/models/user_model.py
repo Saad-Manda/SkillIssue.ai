@@ -6,11 +6,17 @@ from .leadership_model import LeaderShip
 from typing import List, Optional
 
 
-class User(BaseModel):
+class UserPublic(BaseModel):
+    user_id: str
+    email: EmailStr = Field(...)
+    username: str = Field(...)
+    is_active: bool = True
+
+class User(UserPublic):
     model_config = ConfigDict(from_attributes=True)
 
     name: str
-    email: Optional[EmailStr]
+    hashed_password: str
     mobile: Optional[str] = ""
     github_url: Optional[str] = ""
     linkedin_url: Optional[str] = ""
@@ -19,3 +25,21 @@ class User(BaseModel):
     skills: List[str]
     projects: List[Project] = []
     leaderships: List[LeaderShip] = []
+    
+class SignupRequest(BaseModel):
+    email: EmailStr
+    password: str
+    username: str
+
+class SignupResponse(BaseModel):
+    access_token: str
+    signup_token: str
+
+class LoginRequest(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str

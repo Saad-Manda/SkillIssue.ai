@@ -1,13 +1,14 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
 from fastapi import HTTPException
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...models.user_model import User as UserModel
-from ...schemas.user import User as UserSchema
-from ...schemas.experience import Experience as ExperienceSchema
 from ...schemas.education import Education as EducationSchema
-from ...schemas.project import Project as ProjectSchema
+from ...schemas.experience import Experience as ExperienceSchema
 from ...schemas.leadership import Leadership as LeadershipSchema
+from ...schemas.project import Project as ProjectSchema
+from ...schemas.user import User as UserSchema
+
 
 async def update_user_profile(db: AsyncSession, user_id: str, user_profile: dict):
     # Fetch the existing user
@@ -20,17 +21,24 @@ async def update_user_profile(db: AsyncSession, user_id: str, user_profile: dict
 
     # Update user's basic information
     user.name = user_profile.get("name", user.name)
+    user.username = user_profile.get("username", user.username)
     user.email = user_profile.get("email", user.email)
+    user.hashed_password = user_profile.get("hashed_password", user.hashed_password)
+    user.is_active = user_profile.get("is_active", user.is_active)
     user.mobile = user_profile.get("mobile", user.mobile)
     user.github_url = user_profile.get("github_url", user.github_url)
     user.linkedin_url = user_profile.get("linkedin_url", user.linkedin_url)
     user.skills = user_profile.get("skills", user.skills)
 
     # Delete existing related records
-    await db.execute(delete(ExperienceSchema).where(ExperienceSchema.user_id == user_id))
+    await db.execute(
+        delete(ExperienceSchema).where(ExperienceSchema.user_id == user_id)
+    )
     await db.execute(delete(EducationSchema).where(EducationSchema.user_id == user_id))
     await db.execute(delete(ProjectSchema).where(ProjectSchema.user_id == user_id))
-    await db.execute(delete(LeadershipSchema).where(LeadershipSchema.user_id == user_id))
+    await db.execute(
+        delete(LeadershipSchema).where(LeadershipSchema.user_id == user_id)
+    )
 
     # Add updated experiences
     for experience in user_profile.get("experiences", []):

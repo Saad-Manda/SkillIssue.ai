@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 
-from .routes import routes_user, routes_jd, routes_session, routes_health_check
+from .routes import routes_auth, routes_user, routes_jd, routes_session, routes_health_check
 
 app = FastAPI(title = "SkillIssue.ai")
 
+app.include_router(routes_auth.router, tags=["auth"])
 app.include_router(routes_user.router, tags=["users"])
 app.include_router(routes_jd.router, tags=["job_descriptions"])
 app.include_router(routes_session.router, tags=["interviews"])
