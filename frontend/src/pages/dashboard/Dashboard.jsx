@@ -24,7 +24,7 @@ export const Dashboard = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Keep your profile comprehensive to get the best tailored interviews from the Planner agent.</p>
             <Button variant="secondary" onClick={() => navigate('/profile')} fullWidth>
-              Update Profile
+              View Profile
             </Button>
           </div>
         </Card>

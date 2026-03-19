@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Button } from '../../components/ui/Button';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, FileText } from 'lucide-react';
 
 export const InterviewSession = () => {
   const { session_id } = useParams();
@@ -77,12 +77,12 @@ export const InterviewSession = () => {
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 70px)' }}>
       {/* Sidebar: Interview Pulse */}
-      <div style={{ width: '300px', borderRight: '1px solid var(--border-color)', backgroundColor: '#FFFFFF', padding: '24px' }}>
+      <div style={{ width: '300px', borderRight: '1px solid var(--border-color)', backgroundColor: '#FFFFFF', padding: '24px', display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '1px', marginBottom: '24px' }}>
           Interview Pulse
         </h3>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
           <div>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Current Phase</p>
             <p style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text-primary)' }}>{currentPhase}</p>
@@ -91,6 +91,12 @@ export const InterviewSession = () => {
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Active Topic</p>
             <p style={{ fontSize: '15px', color: 'var(--text-primary)' }}>{currentTopic || '---'}</p>
           </div>
+        </div>
+
+        <div style={{ marginTop: 'auto', paddingTop: '24px', borderTop: '1px solid var(--border-color)' }}>
+          <Button variant="secondary" onClick={() => navigate(`/report/${session_id}`)} style={{ width: '100%', justifyContent: 'center' }}>
+            <FileText size={16} style={{ marginRight: '8px' }} /> End & Generate Report
+          </Button>
         </div>
       </div>
 

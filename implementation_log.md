@@ -25,7 +25,10 @@
 4. **Profile & Dashboard Implementation**:
    - Created `Navbar.jsx` in `src/components/layout` to provide consistent navigation and a logout utility for authenticated pages.
    - Built `Dashboard.jsx` as a centralized hub, featuring a "New Interview" CTA and placeholders for history tracking.
-   - Developed `Profile.jsx` (`/profile` & `/profile/new`) to capture `name`, `mobile`, `github`, `linkedin`, and `skills`. This data directly interfaces with the `/users/` backend endpoint using the `signup_token`.
+   - Developed `Profile.jsx` (`/profile` & `/profile/new`) as an **exhaustive, dynamic form interface**, capturing:
+     - *Basics*: Name, mobile, github, linkedin, top skills.
+     - *Dynamic Arrays*: `Experiences`, `Educations`, `Projects`, and `Leaderships`. Added Add/Remove triggers for each object group so the user can seamlessly construct comprehensive datasets that securely map to the SQLAlchemy/Pydantic backend structures.
+     - *Pre-filling*: Built an asynchronous `useEffect` hook to invoke `api.getUserProfile(user.id, token)`. Upon successful retrieval, it maps all complex existing array data directly into the React Form states to vastly improve User Experience layout editing.
    - Updated `App.jsx` with an `AppLayout` wrapper to render the `Navbar` across all authenticated views.
 
 5. **Interview Setup & Session Chat interface**:
