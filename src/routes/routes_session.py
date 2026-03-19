@@ -21,7 +21,13 @@ async def start_session_endpoint(
     session_id, state, chat, turn_count, store_count = await start_session(
         user_id, jd_id, interview_length, db
     )
-    return {"session_id": session_id}
+    return {
+        "session_id": session_id,
+        "current_question": state.current_question,
+        "current_phase_name": state.current_phase_name,
+        "current_topic_id": state.current_topic_id,
+        "chat": chat
+    }
 
 
 @router.post("/{session_id}/answer")

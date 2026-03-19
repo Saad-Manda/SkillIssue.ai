@@ -21,5 +21,6 @@ async def login(db: AsyncSession, payload: LoginRequest):
     access_token = await create_access_token(data = data)
     return LoginResponse(
         access_token=access_token,
-        token_type="bearer"
+        token_type="bearer",
+        user_id=user.user_id
     )

@@ -7,6 +7,7 @@ from .util_model import Emp_Type,  Loc_Type, Salary
 class JobDescription(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
+    jd_id: Optional[str] = None
     job_title: str
     job_type: Emp_Type
     loc_type: Optional[Loc_Type] = None

@@ -1,8 +1,21 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .routes import routes_auth, routes_user, routes_jd, routes_session, routes_health_check
 
 app = FastAPI(title = "SkillIssue.ai")
+
+origins = [
+    "http://localhost:5173", 
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],     
+    allow_headers=["*"],  
+)
 
 app.include_router(routes_auth.router, tags=["auth"])
 app.include_router(routes_user.router, tags=["users"])
