@@ -1,10 +1,10 @@
 import logging
+from datetime import date, datetime
 
 from fastapi import HTTPException
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...models.user_model import User as UserModel
 from ...schemas.education import Education as EducationSchema
 from ...schemas.experience import Experience as ExperienceSchema
 from ...schemas.leadership import Leadership as LeadershipSchema
@@ -12,6 +12,42 @@ from ...schemas.project import Project as ProjectSchema
 from ...schemas.user import User as UserSchema
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_datetime(value):
+    if value is None or isinstance(value, datetime):
+        return value
+    if isinstance(value, date):
+        return datetime.combine(value, datetime.min.time())
+    if isinstance(value, str):
+        normalized = value.strip()
+        if normalized.endswith("Z"):
+            normalized = normalized[:-1] + "+00:00"
+        try:
+            return datetime.fromisoformat(normalized)
+        except ValueError:
+            try:
+                return datetime.strptime(normalized, "%Y-%m-%d")
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Invalid datetime value: {value}",
+                ) from exc
+    raise HTTPException(
+        status_code=422,
+        detail=f"Invalid datetime value type: {type(value).__name__}",
+    )
+
+
+def _normalize_date_fields(items: list, fields: tuple[str, ...]) -> list:
+    normalized_items = []
+    for item in items:
+        updated_item = dict(item)
+        for field in fields:
+            if field in updated_item:
+                updated_item[field] = _parse_datetime(updated_item[field])
+        normalized_items.append(updated_item)
+    return normalized_items
 
 
 async def update_user_profile(db: AsyncSession, user_id: str, user_profile: dict):
@@ -38,35 +74,51 @@ async def update_user_profile(db: AsyncSession, user_id: str, user_profile: dict
     user.linkedin_url = user_profile.get("linkedin_url", user.linkedin_url)
     user.skills = user_profile.get("skills", user.skills)
 
-    # Delete existing related records
-    await db.execute(
-        delete(ExperienceSchema).where(ExperienceSchema.user_id == user_id)
-    )
-    await db.execute(delete(EducationSchema).where(EducationSchema.user_id == user_id))
-    await db.execute(delete(ProjectSchema).where(ProjectSchema.user_id == user_id))
-    await db.execute(
-        delete(LeadershipSchema).where(LeadershipSchema.user_id == user_id)
-    )
+    # Replace experiences only if provided in patch payload
+    if "experiences" in user_profile:
+        await db.execute(
+            delete(ExperienceSchema).where(ExperienceSchema.user_id == user_id)
+        )
+        experiences = _normalize_date_fields(
+            user_profile.get("experiences") or [],
+            ("start_date", "end_date"),
+        )
+        for experience in experiences:
+            exp = ExperienceSchema(**experience, user_id=user_id)
+            db.add(exp)
 
-    # Add updated experiences
-    for experience in user_profile.get("experiences", []):
-        exp = ExperienceSchema(**experience, user_id=user_id)
-        db.add(exp)
+    # Replace educations only if provided in patch payload
+    if "educations" in user_profile:
+        await db.execute(
+            delete(EducationSchema).where(EducationSchema.user_id == user_id)
+        )
+        educations = _normalize_date_fields(
+            user_profile.get("educations") or [],
+            ("start_date", "end_date"),
+        )
+        for education in educations:
+            edu = EducationSchema(**education, user_id=user_id)
+            db.add(edu)
 
-    # Add updated educations
-    for education in user_profile.get("educations", []):
-        edu = EducationSchema(**education, user_id=user_id)
-        db.add(edu)
+    # Replace projects only if provided in patch payload
+    if "projects" in user_profile:
+        await db.execute(delete(ProjectSchema).where(ProjectSchema.user_id == user_id))
+        for project in user_profile.get("projects") or []:
+            proj = ProjectSchema(**project, user_id=user_id)
+            db.add(proj)
 
-    # Add updated projects
-    for project in user_profile.get("projects", []):
-        proj = ProjectSchema(**project, user_id=user_id)
-        db.add(proj)
-
-    # Add updated leaderships
-    for leadership in user_profile.get("leaderships", []):
-        lead = LeadershipSchema(**leadership, user_id=user_id)
-        db.add(lead)
+    # Replace leaderships only if provided in patch payload
+    if "leaderships" in user_profile:
+        await db.execute(
+            delete(LeadershipSchema).where(LeadershipSchema.user_id == user_id)
+        )
+        leaderships = _normalize_date_fields(
+            user_profile.get("leaderships") or [],
+            ("start_date", "end_date"),
+        )
+        for leadership in leaderships:
+            lead = LeadershipSchema(**leadership, user_id=user_id)
+            db.add(lead)
 
     await db.commit()
     logger.info("update_user_profile controller succeeded for user_id=%s", user_id)
