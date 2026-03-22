@@ -1,20 +1,33 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import routes_auth, routes_user, routes_jd, routes_session, routes_health_check
+from .routes import (
+    routes_auth,
+    routes_health_check,
+    routes_jd,
+    routes_session,
+    routes_user,
+)
 
-app = FastAPI(title = "SkillIssue.ai")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
+
+app = FastAPI(title="SkillIssue.ai")
 
 origins = [
-    "http://localhost:5173", 
+    "http://localhost:5173",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],     
-    allow_headers=["*"],  
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(routes_auth.router, tags=["auth"])

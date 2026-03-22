@@ -1,29 +1,34 @@
+import logging
 from uuid import uuid4
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..utils import verify_signup_token
-from ...models.user_model import User as UserModel
 from ...models.user_model import SignupResponse
+from ...models.user_model import User as UserModel
 from ...schemas.education import Education as EducationSchema
 from ...schemas.experience import Experience as ExperienceSchema
 from ...schemas.leadership import Leadership as LeadershipSchema
 from ...schemas.project import Project as ProjectSchema
 from ...schemas.user import User as UserSchema
+from ..utils import verify_signup_token
 
-async def create_user_profile(
-    db: AsyncSession, user_profile: UserModel, signup_token
-):
+logger = logging.getLogger(__name__)
+
+
+async def create_user_profile(db: AsyncSession, user_profile: UserModel, signup_token):
+    logger.info(
+        "create_user_profile controller called for username=%s", user_profile.username
+    )
     cred = verify_signup_token(signup_token)
 
     user = UserSchema(
         user_id=str(uuid4()),
         name=user_profile.name,
-        username=cred.get('sub'),
-        email=cred.get('email'),
-        hashed_password=cred.get('hashed_password'),
+        username=cred.get("sub"),
+        email=cred.get("email"),
+        hashed_password=cred.get("hashed_password"),
         is_active=user_profile.is_active,
         mobile=user_profile.mobile,
         github_url=user_profile.github_url,
@@ -97,10 +102,14 @@ async def create_user_profile(
             selectinload(UserSchema.projects),
             selectinload(UserSchema.leaderships),
             selectinload(UserSchema.projects),
-            selectinload(UserSchema.leaderships)
+            selectinload(UserSchema.leaderships),
         )
         .where(UserSchema.user_id == user.user_id)
     )
     result = await db.execute(stmt)
     user_obj = result.scalar_one()
-    return UserModel.model_validate(user_obj)
+    response = UserModel.model_validate(user_obj)
+    logger.info(
+        "create_user_profile controller succeeded for user_id=%s", response.user_id
+    )
+    return response

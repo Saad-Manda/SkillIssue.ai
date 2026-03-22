@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import HTTPException
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,14 +11,20 @@ from ...schemas.leadership import Leadership as LeadershipSchema
 from ...schemas.project import Project as ProjectSchema
 from ...schemas.user import User as UserSchema
 
+logger = logging.getLogger(__name__)
+
 
 async def update_user_profile(db: AsyncSession, user_id: str, user_profile: dict):
+    logger.info("update_user_profile controller called for user_id=%s", user_id)
     # Fetch the existing user
     query = select(UserSchema).where(UserSchema.user_id == user_id)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
 
     if user is None:
+        logger.warning(
+            "update_user_profile controller not found for user_id=%s", user_id
+        )
         raise HTTPException(status_code=404, detail="User not found")
 
     # Update user's basic information
@@ -61,4 +69,5 @@ async def update_user_profile(db: AsyncSession, user_id: str, user_profile: dict
         db.add(lead)
 
     await db.commit()
+    logger.info("update_user_profile controller succeeded for user_id=%s", user_id)
     return True

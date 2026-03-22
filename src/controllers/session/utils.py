@@ -1,4 +1,5 @@
 import json
+import logging
 import uuid
 
 from ...agents.app import app
@@ -7,8 +8,11 @@ from ...models.plan_model import Plan
 from ...models.states.states import SystemState
 from ...models.user_model import User
 
+logger = logging.getLogger(__name__)
+
 
 def _parse_json(text: str) -> dict:
+    logger.debug("_parse_json called with text_present=%s", bool(text))
     if not text:
         return {}
     return json.loads(text)
@@ -20,6 +24,11 @@ def _build_initial_state(
     jd: JobDescription,
     interview_length: str,
 ) -> SystemState:
+    logger.info(
+        "_build_initial_state called for session_id=%s interview_length=%s",
+        session_id,
+        interview_length,
+    )
     length_to_topics = {
         "short": (5, 10),
         "medium": (10, 15),
@@ -55,7 +64,7 @@ def _run_graph(state: SystemState, *, resume: bool = False) -> SystemState:
       session_id, merging in the updated fields from `state`.
     """
 
-    print(f"[_run_graph] resume={resume}, thread_id={state.session_id!r}")
+    logger.info("_run_graph called resume=%s thread_id=%s", resume, state.session_id)
     # Base config for this session
     config = {
         "configurable": {"thread_id": state.session_id},
@@ -70,6 +79,7 @@ def _run_graph(state: SystemState, *, resume: bool = False) -> SystemState:
         input_payload = state
 
     result = app.invoke(input_payload, config=config)
+    logger.info("_run_graph completed resume=%s thread_id=%s", resume, state.session_id)
     return SystemState.model_validate(result)
 
 
@@ -80,11 +90,14 @@ def _load_graph_state(session_id: str) -> SystemState | None:
     The POST answer route should use this instead of expecting the client
     to send back the full in-memory state object.
     """
+    logger.info("_load_graph_state called for session_id=%s", session_id)
     config = {
         "configurable": {"thread_id": session_id},
         "recursion_limit": 50,
     }
     snapshot = app.get_state(config)
     if snapshot is None or snapshot.values is None:
+        logger.warning("_load_graph_state found no state for session_id=%s", session_id)
         return None
+    logger.info("_load_graph_state succeeded for session_id=%s", session_id)
     return SystemState.model_validate(snapshot.values)
