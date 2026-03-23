@@ -40,6 +40,7 @@ export const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [hasExistingProfile, setHasExistingProfile] = useState(false);
 
   // 1. Basic Info
   const [basics, setBasics] = useState({ name: '', mobile: '', github_url: '', linkedin_url: '', skills: '' });
@@ -52,6 +53,7 @@ export const Profile = () => {
         try {
           const data = await api.getUserProfile(user.id, token);
           if (data) {
+            setHasExistingProfile(true);
             setBasics({
               name: data.name || '', mobile: data.mobile || '',
               github_url: data.github_url || '', linkedin_url: data.linkedin_url || '',
@@ -71,6 +73,7 @@ export const Profile = () => {
             }
           }
         } catch (err) {
+          setHasExistingProfile(false);
           console.log("Profile not found or could not be loaded entirely yet.", err);
         }
       };
@@ -139,7 +142,6 @@ export const Profile = () => {
       const splitStr = (str) => str ? str.split(',').map(s => s.trim()).filter(Boolean) : [];
 
       const payload = {
-        user_id: "dummy_id", email: "dummy@example.com", username: "dummy_user", hashed_password: "dummy_password", is_active: true,
         name: basics.name, mobile: basics.mobile, github_url: basics.github_url, linkedin_url: basics.linkedin_url,
         skills: splitStr(basics.skills),
         experiences: experiences.map(ex => ({
@@ -160,9 +162,21 @@ export const Profile = () => {
         }))
       };
 
-      const signupToken = localStorage.getItem('signup_token');
-      const createdUser = await api.createUserProfile(payload, signupToken || '');
-      setUser({ id: createdUser.user_id, email: createdUser.email, username: createdUser.username });
+      if (hasExistingProfile && user?.id) {
+        await api.updateUserProfile(user.id, payload, token);
+      } else {
+        const signupToken = localStorage.getItem('signup_token');
+        const createPayload = {
+          user_id: user?.id || '',
+          email: user?.email || 'user@example.com',
+          username: user?.username || 'user',
+          hashed_password: 'placeholder',
+          is_active: true,
+          ...payload
+        };
+        const createdUser = await api.createUserProfile(createPayload, signupToken || '');
+        setUser({ id: createdUser.user_id, email: createdUser.email, username: createdUser.username });
+      }
       
       setSuccess(true);
       setTimeout(() => navigate('/dashboard'), 1500);

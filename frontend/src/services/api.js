@@ -61,6 +61,19 @@ export const api = {
     return handleResponse(response);
   },
 
+  updateUserProfile: async (userId, profileData, token) => {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(profileData),
+    });
+    return handleResponse(response);
+  },
+
   // --- Job Description & Interview ---
   createJD: async (jdData) => {
     // expects { title, role, company, description, etc... }
