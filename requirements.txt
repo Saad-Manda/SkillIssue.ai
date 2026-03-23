@@ -23,6 +23,7 @@ pydantic==2.12.5
 pydantic[email]==2.12.5
 python-dotenv==1.2.1
 pydantic-settings==2.12.0
+pymongo==4.16.0
 python-multipart==0.0.22
 redis>=5.0.1
 sentence-transformers==5.2.3

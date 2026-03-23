@@ -1,7 +1,11 @@
 import logging
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pymongo import MongoClient
+from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 
 from .routes import (
     routes_auth,
@@ -11,12 +15,26 @@ from .routes import (
     routes_user,
 )
 
+load_dotenv()
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
 )
 
-app = FastAPI(title="SkillIssue.ai")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global mongo_client, mongo_db
+    mongo_client = MongoClient(os.getenv("ATLAS_DB_URI"))
+    mongo_db = mongo_client["skillissue"]
+    logging.info("MongoDB Connected....")
+
+    yield
+
+    mongo_client.close()
+    logging.info("MongoDB connection closed")
+
+app = FastAPI(title="SkillIssue.ai", lifespan=lifespan)
 
 origins = [
     "http://localhost:5173",
