@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, ConfigDict
 class Education(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
+    education_id: Optional[str] = None
     institute_name: str = Field(...)
     degree: str = Field(...)
     grade: float = Field(...)

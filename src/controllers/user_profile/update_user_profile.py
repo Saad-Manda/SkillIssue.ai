@@ -1,5 +1,6 @@
 import logging
 from datetime import date, datetime
+from uuid import uuid4
 
 from fastapi import HTTPException
 from sqlalchemy import delete, select
@@ -42,12 +43,191 @@ def _parse_datetime(value):
 def _normalize_date_fields(items: list, fields: tuple[str, ...]) -> list:
     normalized_items = []
     for item in items:
+        if not isinstance(item, dict):
+            raise HTTPException(
+                status_code=422,
+                detail="Invalid payload item type. Each item must be an object.",
+            )
         updated_item = dict(item)
         for field in fields:
             if field in updated_item:
                 updated_item[field] = _parse_datetime(updated_item[field])
         normalized_items.append(updated_item)
     return normalized_items
+
+
+async def _sync_experiences(db: AsyncSession, user_id: str, experiences_payload: list):
+    experiences = _normalize_date_fields(experiences_payload, ("start_date", "end_date"))
+    result = await db.execute(select(ExperienceSchema).where(ExperienceSchema.user_id == user_id))
+    existing = {row.experience_id: row for row in result.scalars().all()}
+    seen_ids = set()
+    allowed_fields = {
+        "role",
+        "company",
+        "emp_type",
+        "loc_type",
+        "skills_used",
+        "start_date",
+        "end_date",
+        "location",
+        "description",
+    }
+
+    for experience in experiences:
+        experience_id = experience.pop("experience_id", None)
+        payload = {field: value for field, value in experience.items() if field in allowed_fields}
+        if experience_id:
+            existing_row = existing.get(experience_id)
+            if not existing_row:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid experience_id for user: {experience_id}",
+                )
+            for field, value in payload.items():
+                setattr(existing_row, field, value)
+            seen_ids.add(experience_id)
+            continue
+
+        db.add(
+            ExperienceSchema(
+                experience_id=str(uuid4()),
+                user_id=user_id,
+                **payload,
+            )
+        )
+
+    ids_to_delete = [exp_id for exp_id in existing if exp_id not in seen_ids]
+    if ids_to_delete:
+        await db.execute(
+            delete(ExperienceSchema).where(ExperienceSchema.experience_id.in_(ids_to_delete))
+        )
+
+
+async def _sync_educations(db: AsyncSession, user_id: str, educations_payload: list):
+    educations = _normalize_date_fields(educations_payload, ("start_date", "end_date"))
+    result = await db.execute(select(EducationSchema).where(EducationSchema.user_id == user_id))
+    existing = {row.education_id: row for row in result.scalars().all()}
+    seen_ids = set()
+    allowed_fields = {
+        "institute_name",
+        "degree",
+        "grade",
+        "courses",
+        "start_date",
+        "end_date",
+    }
+
+    for education in educations:
+        education_id = education.pop("education_id", None)
+        payload = {field: value for field, value in education.items() if field in allowed_fields}
+        if education_id:
+            existing_row = existing.get(education_id)
+            if not existing_row:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid education_id for user: {education_id}",
+                )
+            for field, value in payload.items():
+                setattr(existing_row, field, value)
+            seen_ids.add(education_id)
+            continue
+
+        db.add(
+            EducationSchema(
+                education_id=str(uuid4()),
+                user_id=user_id,
+                **payload,
+            )
+        )
+
+    ids_to_delete = [edu_id for edu_id in existing if edu_id not in seen_ids]
+    if ids_to_delete:
+        await db.execute(
+            delete(EducationSchema).where(EducationSchema.education_id.in_(ids_to_delete))
+        )
+
+
+async def _sync_projects(db: AsyncSession, user_id: str, projects_payload: list):
+    if any(not isinstance(project, dict) for project in projects_payload):
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid payload item type. Each item must be an object.",
+        )
+
+    result = await db.execute(select(ProjectSchema).where(ProjectSchema.user_id == user_id))
+    existing = {row.project_id: row for row in result.scalars().all()}
+    seen_ids = set()
+    allowed_fields = {"title", "description", "skills_used", "github_url", "deployed_url"}
+
+    for project in projects_payload:
+        payload = dict(project)
+        project_id = payload.pop("project_id", None)
+        payload = {field: value for field, value in payload.items() if field in allowed_fields}
+        if project_id:
+            existing_row = existing.get(project_id)
+            if not existing_row:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid project_id for user: {project_id}",
+                )
+            for field, value in payload.items():
+                setattr(existing_row, field, value)
+            seen_ids.add(project_id)
+            continue
+
+        db.add(ProjectSchema(project_id=str(uuid4()), user_id=user_id, **payload))
+
+    ids_to_delete = [proj_id for proj_id in existing if proj_id not in seen_ids]
+    if ids_to_delete:
+        await db.execute(
+            delete(ProjectSchema).where(ProjectSchema.project_id.in_(ids_to_delete))
+        )
+
+
+async def _sync_leaderships(db: AsyncSession, user_id: str, leaderships_payload: list):
+    leaderships = _normalize_date_fields(leaderships_payload, ("start_date", "end_date"))
+    result = await db.execute(
+        select(LeadershipSchema).where(LeadershipSchema.user_id == user_id)
+    )
+    existing = {row.leadership_id: row for row in result.scalars().all()}
+    seen_ids = set()
+    allowed_fields = {
+        "committee_name",
+        "position",
+        "skills_used",
+        "description",
+        "start_date",
+        "end_date",
+    }
+
+    for leadership in leaderships:
+        leadership_id = leadership.pop("leadership_id", None)
+        payload = {field: value for field, value in leadership.items() if field in allowed_fields}
+        if leadership_id:
+            existing_row = existing.get(leadership_id)
+            if not existing_row:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid leadership_id for user: {leadership_id}",
+                )
+            for field, value in payload.items():
+                setattr(existing_row, field, value)
+            seen_ids.add(leadership_id)
+            continue
+
+        db.add(
+            LeadershipSchema(
+                leadership_id=str(uuid4()),
+                user_id=user_id,
+                **payload,
+            )
+        )
+
+    ids_to_delete = [lead_id for lead_id in existing if lead_id not in seen_ids]
+    if ids_to_delete:
+        await db.execute(
+            delete(LeadershipSchema).where(LeadershipSchema.leadership_id.in_(ids_to_delete))
+        )
 
 
 async def update_user_profile(db: AsyncSession, user_id: str, user_profile: dict):
@@ -74,51 +254,21 @@ async def update_user_profile(db: AsyncSession, user_id: str, user_profile: dict
     user.linkedin_url = user_profile.get("linkedin_url", user.linkedin_url)
     user.skills = user_profile.get("skills", user.skills)
 
-    # Replace experiences only if provided in patch payload
+    # Sync experiences only if provided in patch payload
     if "experiences" in user_profile:
-        await db.execute(
-            delete(ExperienceSchema).where(ExperienceSchema.user_id == user_id)
-        )
-        experiences = _normalize_date_fields(
-            user_profile.get("experiences") or [],
-            ("start_date", "end_date"),
-        )
-        for experience in experiences:
-            exp = ExperienceSchema(**experience, user_id=user_id)
-            db.add(exp)
+        await _sync_experiences(db, user_id, user_profile.get("experiences") or [])
 
-    # Replace educations only if provided in patch payload
+    # Sync educations only if provided in patch payload
     if "educations" in user_profile:
-        await db.execute(
-            delete(EducationSchema).where(EducationSchema.user_id == user_id)
-        )
-        educations = _normalize_date_fields(
-            user_profile.get("educations") or [],
-            ("start_date", "end_date"),
-        )
-        for education in educations:
-            edu = EducationSchema(**education, user_id=user_id)
-            db.add(edu)
+        await _sync_educations(db, user_id, user_profile.get("educations") or [])
 
-    # Replace projects only if provided in patch payload
+    # Sync projects only if provided in patch payload
     if "projects" in user_profile:
-        await db.execute(delete(ProjectSchema).where(ProjectSchema.user_id == user_id))
-        for project in user_profile.get("projects") or []:
-            proj = ProjectSchema(**project, user_id=user_id)
-            db.add(proj)
+        await _sync_projects(db, user_id, user_profile.get("projects") or [])
 
-    # Replace leaderships only if provided in patch payload
+    # Sync leaderships only if provided in patch payload
     if "leaderships" in user_profile:
-        await db.execute(
-            delete(LeadershipSchema).where(LeadershipSchema.user_id == user_id)
-        )
-        leaderships = _normalize_date_fields(
-            user_profile.get("leaderships") or [],
-            ("start_date", "end_date"),
-        )
-        for leadership in leaderships:
-            lead = LeadershipSchema(**leadership, user_id=user_id)
-            db.add(lead)
+        await _sync_leaderships(db, user_id, user_profile.get("leaderships") or [])
 
     await db.commit()
     logger.info("update_user_profile controller succeeded for user_id=%s", user_id)

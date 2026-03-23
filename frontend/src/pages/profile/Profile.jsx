@@ -41,6 +41,7 @@ export const Profile = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [hasExistingProfile, setHasExistingProfile] = useState(false);
+  const toDateInput = (value) => (typeof value === 'string' ? value.split('T')[0] : (value || ''));
 
   // 1. Basic Info
   const [basics, setBasics] = useState({ name: '', mobile: '', github_url: '', linkedin_url: '', skills: '' });
@@ -60,16 +61,31 @@ export const Profile = () => {
               skills: Array.isArray(data.skills) ? data.skills.join(', ') : ''
             });
             if (data.experiences) {
-              setExperiences(data.experiences.map(ex => ({ ...ex, skills_used: Array.isArray(ex.skills_used) ? ex.skills_used.join(', ') : '' })));
+              setExperiences(data.experiences.map(ex => ({
+                ...ex,
+                start_date: toDateInput(ex.start_date),
+                end_date: toDateInput(ex.end_date),
+                skills_used: Array.isArray(ex.skills_used) ? ex.skills_used.join(', ') : ''
+              })));
             }
             if (data.educations) {
-              setEducations(data.educations.map(ed => ({ ...ed, courses: Array.isArray(ed.courses) ? ed.courses.join(', ') : '' })));
+              setEducations(data.educations.map(ed => ({
+                ...ed,
+                start_date: toDateInput(ed.start_date),
+                end_date: toDateInput(ed.end_date),
+                courses: Array.isArray(ed.courses) ? ed.courses.join(', ') : ''
+              })));
             }
             if (data.projects) {
               setProjects(data.projects.map(pr => ({ ...pr, skills_used: Array.isArray(pr.skills_used) ? pr.skills_used.join(', ') : '' })));
             }
             if (data.leaderships) {
-              setLeaderships(data.leaderships.map(ld => ({ ...ld, skills_used: Array.isArray(ld.skills_used) ? ld.skills_used.join(', ') : '' })));
+              setLeaderships(data.leaderships.map(ld => ({
+                ...ld,
+                start_date: toDateInput(ld.start_date),
+                end_date: toDateInput(ld.end_date),
+                skills_used: Array.isArray(ld.skills_used) ? ld.skills_used.join(', ') : ''
+              })));
             }
           }
         } catch (err) {
@@ -217,7 +233,7 @@ export const Profile = () => {
           {/* Experiences */}
           <FormSection title="Experience">
             {experiences.map((exp, i) => (
-              <ArrayItem key={i} index={i} onRemove={removeExperience}>
+              <ArrayItem key={exp.experience_id || i} index={i} onRemove={removeExperience}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <Input label="Role" name="role" value={exp.role} onChange={(e) => updateExperience(i, e)} required />
                   <Input label="Company" name="company" value={exp.company} onChange={(e) => updateExperience(i, e)} required />
@@ -249,7 +265,7 @@ export const Profile = () => {
           {/* Educations */}
           <FormSection title="Education">
             {educations.map((edu, i) => (
-              <ArrayItem key={i} index={i} onRemove={removeEducation}>
+              <ArrayItem key={edu.education_id || i} index={i} onRemove={removeEducation}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <Input label="Institute Name" name="institute_name" value={edu.institute_name} onChange={(e) => updateEducation(i, e)} required />
                   <Input label="Degree" name="degree" value={edu.degree} onChange={(e) => updateEducation(i, e)} required />
@@ -266,7 +282,7 @@ export const Profile = () => {
           {/* Projects */}
           <FormSection title="Projects">
             {projects.map((proj, i) => (
-              <ArrayItem key={i} index={i} onRemove={removeProject}>
+              <ArrayItem key={proj.project_id || i} index={i} onRemove={removeProject}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <Input label="Project Title" name="title" value={proj.title} onChange={(e) => updateProject(i, e)} required />
@@ -288,7 +304,7 @@ export const Profile = () => {
           {/* Leadership */}
           <FormSection title="Leadership">
             {leaderships.map((ld, i) => (
-              <ArrayItem key={i} index={i} onRemove={removeLeadership}>
+              <ArrayItem key={ld.leadership_id || i} index={i} onRemove={removeLeadership}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <Input label="Committee/Organization Name" name="committee_name" value={ld.committee_name} onChange={(e) => updateLeadership(i, e)} required />
                   <Input label="Position/Role" name="position" value={ld.position} onChange={(e) => updateLeadership(i, e)} required />

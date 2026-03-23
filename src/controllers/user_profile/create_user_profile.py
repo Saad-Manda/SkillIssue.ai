@@ -39,7 +39,7 @@ async def create_user_profile(db: AsyncSession, user_profile: UserModel, signup_
 
     for experience in user_profile.experiences:
         exp = ExperienceSchema(
-            experience_id=str(uuid4()),
+            experience_id=experience.experience_id or str(uuid4()),
             role=experience.role,
             company=experience.company,
             emp_type=experience.emp_type,
@@ -55,7 +55,7 @@ async def create_user_profile(db: AsyncSession, user_profile: UserModel, signup_
 
     for education in user_profile.educations:
         edu = EducationSchema(
-            education_id=str(uuid4()),
+            education_id=education.education_id or str(uuid4()),
             institute_name=education.institute_name,
             degree=education.degree,
             grade=education.grade,
@@ -68,7 +68,7 @@ async def create_user_profile(db: AsyncSession, user_profile: UserModel, signup_
 
     for project in user_profile.projects:
         proj = ProjectSchema(
-            project_id=str(uuid4()),
+            project_id=project.project_id or str(uuid4()),
             title=project.title,
             description=project.description,
             skills_used=project.skills_used,
@@ -80,7 +80,7 @@ async def create_user_profile(db: AsyncSession, user_profile: UserModel, signup_
 
     for leadership in user_profile.leaderships:
         lead = LeadershipSchema(
-            leadership_id=str(uuid4()),
+            leadership_id=leadership.leadership_id or str(uuid4()),
             committee_name=leadership.committee_name,
             position=leadership.position,
             skills_used=leadership.skills_used,

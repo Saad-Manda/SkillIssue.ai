@@ -6,6 +6,7 @@ from pydantic import BaseModel, EmailStr, Field, ConfigDict
 class LeaderShip(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
+    leadership_id: Optional[str] = None
     committee_name: str = Field(...)
     position: str = Field(...)
     skills_used: Optional[List[str]] = []
