@@ -1,7 +1,8 @@
 from fastapi import HTTPException
 from ...database import get_collection
+from ...config import settings
 
-async def get_interview(interview_id: str, collection_name: str) -> dict:
+async def get_interview(interview_id: str, collection_name: str = settings.COLLECTION_NAME) -> dict:
     try:
         interview_collection = await get_collection(collection_name)
     except Exception as e:

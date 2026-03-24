@@ -8,15 +8,17 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "SkillIssue.ai"
     DEBUG: bool = False
     DATABASE_URL: str
-    MODEL: str = "models/gemini-2.5-flash"
+    MODEL: str 
     GOOGLE_API_KEY: str
-    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_URL: str
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRY_MINUTES: int
     JWT_API_KEY: str
     MONGO_DB: str
     ATLAS_DB_URI: str
+    COLLECTION_NAME: str
+
     model_config = SettingsConfigDict(env_file = BASE_DIR / ".env")
 
 
