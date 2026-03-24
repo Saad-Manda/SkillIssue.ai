@@ -9,7 +9,7 @@ from ..controllers.session.send_answer import submit_answer
 from ..controllers.session.start_session import start_session
 from ..database import get_db
 
-router = APIRouter(prefix="/api/v1/interview", tags=["interviews"])
+router = APIRouter(prefix="/api/v1/session", tags=["sessions"])
 logger = logging.getLogger(__name__)
 
 
@@ -66,6 +66,6 @@ async def submit_answer_endpoint(session_id: str, payload: SubmitAnswerRequest):
 @router.get("/{session_id}/report")
 async def get_report_endpoint(session_id: str):
     logger.info("get_report_endpoint called for session_id=%s", session_id)
-    report, state = get_report(session_id)
+    report, state = await get_report(session_id)
     logger.info("get_report_endpoint completed for session_id=%s", session_id)
     return {"report": report}
