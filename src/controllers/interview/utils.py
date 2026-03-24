@@ -17,6 +17,7 @@ def _build_interview_payload(system_state: SystemState) -> Interview:
 
     payload = Interview(
         _id=str(uuid4()),
+        session_id=session_id,
         user_id=user.user_id,
         jd_id=jd.jd_id,
         report=report,

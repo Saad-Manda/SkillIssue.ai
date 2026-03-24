@@ -1,5 +1,5 @@
 from typing import Optional, List
-from datetime import date
+from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from .states.turn import Turn
 
@@ -11,5 +11,5 @@ class Interview(BaseModel):
     user_id: str
     jd_id: str
     report: str
-    conducted_on: date
+    conducted_on: datetime
     chat_history: List[Turn]

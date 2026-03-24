@@ -11,5 +11,5 @@ async def add_interview(interview_data: Interview, collection_name: str = settin
     interview_dict = interview_data.model_dump()
     result = await interview_collection.insert_one(interview_dict)
     interview_dict["_id"] = result.inserted_id
-    return Interview(interview_dict)
+    return Interview.model_validate(interview_dict)
 
