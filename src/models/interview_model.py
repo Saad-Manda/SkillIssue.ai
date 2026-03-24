@@ -6,7 +6,7 @@ from .states.turn import Turn
 class Interview(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    _id: str
+    id: str = Field(alias="_id")
     session_id: str
     user_id: str
     jd_id: str

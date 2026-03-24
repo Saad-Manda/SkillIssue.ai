@@ -11,5 +11,7 @@ async def get_all_interviews(collection_name: str = settings.COLLECTION_NAME) ->
     
     interviews = []
     async for interview in interview_collection.find({}):
+        if "_id" in interview:
+            interview["_id"] = str(interview["_id"])
         interviews.append(interview)
     return interviews
