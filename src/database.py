@@ -37,7 +37,7 @@ async def get_collection(collection_name: str):
         raise HTTPException(status_code=500, detail=f"Internal Server Error {e}")
 
     database = client.skillissue
-    session_collection = database.get_collection(collection_name)
-
-    return session_collection
+    collection = database.get_collection(collection_name)
+    
+    return collection
     
