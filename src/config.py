@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRY_MINUTES: int
     JWT_API_KEY: str
+    MONGO_DB: str
+    ATLAS_DB_URI: str
     model_config = SettingsConfigDict(env_file = BASE_DIR / ".env")
 
 
