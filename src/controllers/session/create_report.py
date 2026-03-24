@@ -3,11 +3,13 @@ import logging
 from ...agents.app import app
 from ...models.states.states import SystemState
 from .utils import _load_graph_state, _run_graph
+from ..interview.store_interview import add_interview
+from ..interview.utils import _build_interview_payload
 
 logger = logging.getLogger(__name__)
 
 
-def get_report(session_id: str):
+async def get_report(session_id: str):
     logger.info("get_report controller called for session_id=%s", session_id)
     state = _load_graph_state(session_id)
     if state is None:
@@ -22,4 +24,7 @@ def get_report(session_id: str):
     updated_state = state.model_copy(update={"should_generate_report": True})
     final_state = _run_graph(updated_state, resume=True)
     logger.info("get_report controller succeeded for session_id=%s", session_id)
+
+    interview_payload = _build_interview_payload(final_state)
+    interview = await add_interview(interview_data=interview_payload)
     return final_state.final_report, final_state
