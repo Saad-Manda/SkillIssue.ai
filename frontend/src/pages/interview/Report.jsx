@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { api } from '../../services/api';
@@ -12,8 +12,12 @@ export const Report = () => {
   const [report, setReport] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const reportFetchedRef = useRef(false);
 
   useEffect(() => {
+    if (reportFetchedRef.current) return;
+    reportFetchedRef.current = true;
+    
     const fetchReport = async () => {
       try {
         const data = await api.getReport(session_id);
