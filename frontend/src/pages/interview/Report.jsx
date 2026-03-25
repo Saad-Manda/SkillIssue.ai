@@ -59,7 +59,7 @@ export const Report = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <h1 style={{ fontSize: '32px' }}>Interview Readiness Report</h1>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <Button variant="secondary" onClick={() => navigate('/dashboard')}>
+          <Button onClick={() => navigate('/dashboard')}>
             <ArrowLeft size={16} /> Dashboard
           </Button>
           <Button onClick={() => window.print()}>

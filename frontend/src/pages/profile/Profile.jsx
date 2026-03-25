@@ -259,7 +259,7 @@ export const Profile = () => {
                 </div>
               </ArrayItem>
             ))}
-            <Button type="button" variant="secondary" onClick={addExperience}><Plus size={16}/> Add Experience</Button>
+            <Button type="button" onClick={addExperience}><Plus size={16}/> Add Experience</Button>
           </FormSection>
 
           {/* Educations */}
@@ -276,7 +276,7 @@ export const Profile = () => {
                 </div>
               </ArrayItem>
             ))}
-            <Button type="button" variant="secondary" onClick={addEducation}><Plus size={16}/> Add Education</Button>
+            <Button type="button" onClick={addEducation}><Plus size={16}/> Add Education</Button>
           </FormSection>
 
           {/* Projects */}
@@ -298,7 +298,7 @@ export const Profile = () => {
                 </div>
               </ArrayItem>
             ))}
-            <Button type="button" variant="secondary" onClick={addProject}><Plus size={16}/> Add Project</Button>
+            <Button type="button" onClick={addProject}><Plus size={16}/> Add Project</Button>
           </FormSection>
 
           {/* Leadership */}
@@ -316,12 +316,12 @@ export const Profile = () => {
                 </div>
               </ArrayItem>
             ))}
-            <Button type="button" variant="secondary" onClick={addLeadership}><Plus size={16}/> Add Leadership</Button>
+            <Button type="button" onClick={addLeadership}><Plus size={16}/> Add Leadership</Button>
           </FormSection>
 
           {/* Submit */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '32px' }}>
-            <Button type="button" variant="secondary" onClick={() => navigate('/dashboard')}>Skip / Cancel</Button>
+            <Button type="button" onClick={() => navigate('/dashboard')}>Skip / Cancel</Button>
             <Button type="submit" isLoading={isLoading}>Save Comprehensive Profile</Button>
           </div>
         </form>

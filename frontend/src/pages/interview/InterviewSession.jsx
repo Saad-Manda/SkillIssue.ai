@@ -94,7 +94,7 @@ export const InterviewSession = () => {
         </div>
 
         <div style={{ marginTop: 'auto', paddingTop: '24px', borderTop: '1px solid var(--border-color)' }}>
-          <Button variant="secondary" onClick={() => navigate(`/report/${session_id}`)} style={{ width: '100%', justifyContent: 'center' }}>
+          <Button fullWidth onClick={() => navigate(`/report/${session_id}`)}>
             <FileText size={16} style={{ marginRight: '8px' }} /> End & Generate Report
           </Button>
         </div>

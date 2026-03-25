@@ -123,7 +123,7 @@ export const SetupInterview = () => {
           </div>
 
           <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-            <Button type="button" variant="secondary" onClick={() => navigate('/dashboard')}>Cancel</Button>
+            <Button type="button" onClick={() => navigate('/dashboard')}>Cancel</Button>
             <Button type="submit" isLoading={isLoading}>Start Interview</Button>
           </div>
         </form>

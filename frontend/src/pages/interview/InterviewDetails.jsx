@@ -58,7 +58,7 @@ const InterviewDetails = () => {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
-      <Button variant="secondary" onClick={() => navigate('/dashboard')} style={{ marginBottom: '24px' }}>
+      <Button onClick={() => navigate('/dashboard')} style={{ marginBottom: '24px' }}>
         <ArrowLeft size={16} /> Back to Dashboard
       </Button>
 

@@ -1,4 +1,4 @@
-export const Button = ({ children, variant = 'primary', fullWidth, isLoading, ...props }) => {
+export const Button = ({ children, variant = 'primary', fullWidth, isLoading, style, ...props }) => {
   const isPrimary = variant === 'primary';
   
   return (
@@ -19,7 +19,8 @@ export const Button = ({ children, variant = 'primary', fullWidth, isLoading, ..
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: '8px'
+        gap: '8px',
+        ...style
       }}
       onMouseEnter={(e) => {
         if (!isLoading && !props.disabled) {
