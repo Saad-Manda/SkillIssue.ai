@@ -123,23 +123,6 @@ export const api = {
     return handleResponse(response);
   },
 
-  getInterview: async (interviewId) => {
-    const response = await fetch(`${API_BASE_URL}/interview/${interviewId}`);
-    return handleResponse(response);
-  },
-
-  deleteInterview: async (interviewId) => {
-    const response = await fetch(`${API_BASE_URL}/interview/${interviewId}`, {
-      method: "DELETE",
-    });
-    return handleResponse(response);
-  },
-
-  getAllInterviews: async () => {
-    const response = await fetch(`${API_BASE_URL}/interview/`);
-    return handleResponse(response);
-  },
-
   getInterviewDetails: async (interviewId) => {
     const response = await fetch(`${API_BASE_URL}/interview/${interviewId}`);
     return handleResponse(response);

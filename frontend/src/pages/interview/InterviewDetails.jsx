@@ -57,7 +57,7 @@ const InterviewDetails = () => {
   }
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 20px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
       <Button variant="secondary" onClick={() => navigate('/dashboard')} style={{ marginBottom: '24px' }}>
         <ArrowLeft size={16} /> Back to Dashboard
       </Button>
@@ -77,17 +77,19 @@ const InterviewDetails = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
               <Briefcase size={20} />
-              <span>Job Description Used: {jd.job_title} at {jd.company_name}</span>
+              <span>Job Description Used: {jd.job_title}</span>
             </div>
             {showJd ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           </div>
           
           {showJd && (
             <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
-              <p><strong>Required Experience:</strong> {jd.required_experience} years</p>
+              <p><strong>Required Experience:</strong> {jd.min_experience} years</p>
               <div style={{ marginTop: '12px' }}>
                 <strong>Description:</strong>
-                <p style={{ whiteSpace: 'pre-line', color: 'var(--text-secondary)', marginTop: '8px' }}>{jd.job_description}</p>
+                <p style={{ whiteSpace: 'pre-line', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                  {jd.description || (jd.responsibilities && jd.responsibilities.join('\n'))}
+                </p>
               </div>
             </div>
           )}
@@ -100,9 +102,21 @@ const InterviewDetails = () => {
             <FileText size={20} />
             <span>AI Report</span>
           </div>
-        } style={{ marginBottom: '24px' }}>
-          <div style={{ lineHeight: '1.6', color: 'var(--text-primary)' }}>
-            <ReactMarkdown>{interview.report}</ReactMarkdown>
+        } style={{ marginBottom: '24px', width: '100%' }}>
+          <div className="markdown-body" style={{ color: 'var(--text-primary)', lineHeight: '1.7', fontSize: '16px' }}>
+            <ReactMarkdown
+              components={{
+                h1: ({node, ...props}) => <h1 style={{ fontSize: '28px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '24px', marginTop: '32px' }} {...props} />,
+                h2: ({node, ...props}) => <h2 style={{ fontSize: '22px', marginBottom: '16px', marginTop: '24px' }} {...props} />,
+                h3: ({node, ...props}) => <h3 style={{ fontSize: '18px', marginBottom: '12px', marginTop: '20px' }} {...props} />,
+                p: ({node, ...props}) => <p style={{ marginBottom: '16px' }} {...props} />,
+                ul: ({node, ...props}) => <ul style={{ marginBottom: '16px', paddingLeft: '24px' }} {...props} />,
+                li: ({node, ...props}) => <li style={{ marginBottom: '8px' }} {...props} />,
+                strong: ({node, ...props}) => <strong style={{ fontWeight: 600, color: 'var(--accent-primary)' }} {...props} />
+              }}
+            >
+              {interview.report}
+            </ReactMarkdown>
           </div>
         </Card>
       )}
