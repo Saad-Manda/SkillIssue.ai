@@ -102,5 +102,27 @@ export const api = {
   getReport: async (sessionId) => {
     const response = await fetch(`${API_BASE_URL}/interview/${sessionId}/report`);
     return handleResponse(response);
+  },
+
+  getAllInterviews: async () => {
+    const response = await fetch(`${API_BASE_URL}/interview/`);
+    return handleResponse(response);
+  },
+
+  getInterviewDetails: async (interviewId) => {
+    const response = await fetch(`${API_BASE_URL}/interview/${interviewId}`);
+    return handleResponse(response);
+  },
+
+  deleteInterview: async (interviewId) => {
+    const response = await fetch(`${API_BASE_URL}/interview/${interviewId}`, {
+      method: 'DELETE',
+    });
+    return handleResponse(response);
+  },
+
+  getJDDetails: async (jdId) => {
+    const response = await fetch(`${API_BASE_URL}/jd/${jdId}`);
+    return handleResponse(response);
   }
 };
