@@ -17,4 +17,7 @@ async def delete_interview(interview_id: str, collection_name: str = settings.CO
     
     result = await collection.delete_one({"_id": oid})
     
-    return result
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    return {"message": "Interview deleted successfully"}
