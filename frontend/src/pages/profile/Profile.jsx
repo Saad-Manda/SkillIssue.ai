@@ -6,6 +6,19 @@ import { Button } from '../../components/ui/Button';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Plus, Trash2 } from 'lucide-react';
+import './Profile.css';
+
+const SunIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+  </svg>
+);
 
 // Reusable Section Component
 const FormSection = ({ title, children }) => (
@@ -18,7 +31,7 @@ const FormSection = ({ title, children }) => (
 // Dynamic Array Item Wrapper
 const ArrayItem = ({ index, onRemove, children }) => (
   <div style={{ 
-    padding: '24px', backgroundColor: '#F9FAFB', border: '1px solid var(--border-color)', 
+    padding: '24px', backgroundColor: 'var(--array-item-bg, #F9FAFB)', border: '1px solid var(--border-color)', 
     borderRadius: '12px', marginBottom: '16px', position: 'relative' 
   }}>
     <button 
@@ -37,7 +50,16 @@ const ArrayItem = ({ index, onRemove, children }) => (
 export const Profile = () => {
   const { user, token, setUser } = useAuth();
   const navigate = useNavigate();
+  const [theme, setTheme] = useState('dark');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [hasExistingProfile, setHasExistingProfile] = useState(false);
@@ -205,15 +227,24 @@ export const Profile = () => {
   };
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 20px' }}>
-      <h1 style={{ fontSize: '32px', marginBottom: '8px' }}>Comprehensive Profile</h1>
+    <div className={`profile-wrapper ${theme === 'dark' ? 'theme-dark' : 'theme-light'}`}>
+      <button 
+        className="theme-toggle-btn" 
+        onClick={toggleTheme} 
+        aria-label="Toggle Theme"
+      >
+        {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+      </button>
+
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 20px', position: 'relative', zIndex: 1 }}>
+        <h1 style={{ fontSize: '32px', marginBottom: '8px' }}>Comprehensive Profile</h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
         Provide your full background to let the AI Interviewer contextualize its questions perfectly.
       </p>
 
       <Card style={{ maxWidth: '100%', padding: '40px' }}>
-        {error && <div style={{ padding: '12px', backgroundColor: '#FEF2F2', color: '#EF4444', borderRadius: '6px', marginBottom: '24px' }}>{error}</div>}
-        {success && <div style={{ padding: '12px', backgroundColor: '#F0FDF4', color: '#16A34A', borderRadius: '6px', marginBottom: '24px' }}>Profile saved successfully! Redirecting...</div>}
+        {error && <div style={{ padding: '12px', backgroundColor: 'var(--error-bg, #FEF2F2)', color: 'var(--error-text, #EF4444)', borderRadius: '6px', marginBottom: '24px' }}>{error}</div>}
+        {success && <div style={{ padding: '12px', backgroundColor: 'var(--success-bg, #F0FDF4)', color: 'var(--success-text, #16A34A)', borderRadius: '6px', marginBottom: '24px' }}>Profile saved successfully! Redirecting...</div>}
 
         <form onSubmit={handleSubmit}>
           
@@ -326,7 +357,7 @@ export const Profile = () => {
           </div>
         </form>
       </Card>
-      
+      </div>
     </div>
   );
 };

@@ -16,11 +16,12 @@ export const Input = ({ label, id, error, ...props }) => {
           fontFamily: 'inherit',
           outline: 'none',
           transition: 'border-color 0.2s, box-shadow 0.2s',
-          backgroundColor: 'var(--bg-primary)'
+          backgroundColor: 'var(--bg-primary)',
+          color: 'var(--text-primary)'
         }}
         onFocus={(e) => {
-          e.target.style.borderColor = 'var(--accent-primary)';
-          e.target.style.boxShadow = '0 0 0 2px rgba(37, 99, 235, 0.1)';
+          e.target.style.borderColor = 'var(--text-primary)';
+          e.target.style.boxShadow = '0 0 0 2px var(--focus-ring, rgba(255,255,255,0.2))';
         }}
         onBlur={(e) => {
           e.target.style.borderColor = error ? '#EF4444' : 'var(--border-color)';
