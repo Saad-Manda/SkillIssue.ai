@@ -1,4 +1,4 @@
-export const Button = ({ children, variant = 'primary', fullWidth, isLoading, ...props }) => {
+export const Button = ({ children, variant = 'primary', fullWidth, isLoading, style, ...props }) => {
   const isPrimary = variant === 'primary';
   
   return (
@@ -7,7 +7,7 @@ export const Button = ({ children, variant = 'primary', fullWidth, isLoading, ..
       style={{
         padding: '10px 18px',
         backgroundColor: isPrimary ? 'var(--accent-primary)' : 'transparent',
-        color: isPrimary ? '#FFFFFF' : 'var(--text-primary)',
+        color: isPrimary ? 'var(--btn-primary-text, #FFFFFF)' : 'var(--text-primary)',
         border: isPrimary ? 'none' : '1px solid var(--border-color)',
         borderRadius: '6px',
         fontSize: '15px',
@@ -19,7 +19,8 @@ export const Button = ({ children, variant = 'primary', fullWidth, isLoading, ..
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: '8px'
+        gap: '8px',
+        ...style
       }}
       onMouseEnter={(e) => {
         if (!isLoading && !props.disabled) {

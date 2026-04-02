@@ -102,8 +102,11 @@ export const SetupInterview = () => {
               onChange={handleChange}
               style={{
                 width: '100%', padding: '10px 14px', border: '1px solid var(--border-color)', borderRadius: '6px',
-                minHeight: '80px', fontFamily: 'inherit', fontSize: '15px'
+                minHeight: '80px', fontFamily: 'inherit', fontSize: '15px',
+                backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none', transition: 'all 0.2s'
               }}
+              onFocus={(e) => { e.target.style.borderColor = 'var(--text-primary)'; e.target.style.boxShadow = '0 0 0 2px var(--focus-ring, rgba(255,255,255,0.2))'; }}
+              onBlur={(e) => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.boxShadow = 'none'; }}
               placeholder="Develop scalable UIs..."
             />
           </div>
@@ -116,14 +119,17 @@ export const SetupInterview = () => {
               onChange={handleChange}
               style={{
                 width: '100%', padding: '10px 14px', border: '1px solid var(--border-color)', borderRadius: '6px',
-                minHeight: '120px', fontFamily: 'inherit', fontSize: '15px'
+                minHeight: '120px', fontFamily: 'inherit', fontSize: '15px',
+                backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none', transition: 'all 0.2s'
               }}
+              onFocus={(e) => { e.target.style.borderColor = 'var(--text-primary)'; e.target.style.boxShadow = '0 0 0 2px var(--focus-ring, rgba(255,255,255,0.2))'; }}
+              onBlur={(e) => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.boxShadow = 'none'; }}
               placeholder="Paste full JD here for better context..."
             />
           </div>
 
           <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-            <Button type="button" variant="secondary" onClick={() => navigate('/dashboard')}>Cancel</Button>
+            <Button type="button" onClick={() => navigate('/dashboard')}>Cancel</Button>
             <Button type="submit" isLoading={isLoading}>Start Interview</Button>
           </div>
         </form>

@@ -4,11 +4,24 @@ import { api } from '../../services/api';
 import { Button } from '../../components/ui/Button';
 import { Send, Loader2, FileText } from 'lucide-react';
 
+const SunIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+  </svg>
+);
+
 export const InterviewSession = () => {
   const { session_id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   
+  const [theme, setTheme] = useState('dark');
   const [chat, setChat] = useState([]);
   const [currentPhase, setCurrentPhase] = useState("Initializing...");
   const [currentTopic, setCurrentTopic] = useState("");
@@ -18,6 +31,14 @@ export const InterviewSession = () => {
   const [error, setError] = useState(null);
 
   const endOfChatRef = useRef(null);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
 
   // Initialize from router state
   useEffect(() => {
@@ -75,12 +96,34 @@ export const InterviewSession = () => {
   };
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 70px)' }}>
+    <div className={`interview-wrapper ${theme === 'dark' ? 'theme-dark' : 'theme-light'}`} style={{ display: 'flex', height: 'calc(100vh - 70px)', position: 'relative' }}>
+      
       {/* Sidebar: Interview Pulse */}
-      <div style={{ width: '300px', borderRight: '1px solid var(--border-color)', backgroundColor: '#FFFFFF', padding: '24px', display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '1px', marginBottom: '24px' }}>
-          Interview Pulse
-        </h3>
+      <div style={{ width: '300px', borderRight: '1px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', padding: '24px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '1px' }}>
+            Interview Pulse
+          </h3>
+          <button 
+            onClick={toggleTheme} 
+            aria-label="Toggle Theme"
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--border-color)',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+          </button>
+        </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
           <div>
@@ -94,7 +137,7 @@ export const InterviewSession = () => {
         </div>
 
         <div style={{ marginTop: 'auto', paddingTop: '24px', borderTop: '1px solid var(--border-color)' }}>
-          <Button variant="secondary" onClick={() => navigate(`/report/${session_id}`)} style={{ width: '100%', justifyContent: 'center' }}>
+          <Button fullWidth onClick={() => navigate(`/report/${session_id}`)}>
             <FileText size={16} style={{ marginRight: '8px' }} /> End & Generate Report
           </Button>
         </div>
@@ -115,8 +158,8 @@ export const InterviewSession = () => {
                   maxWidth: '75%',
                   padding: '16px 20px',
                   borderRadius: '12px',
-                  backgroundColor: msg.role === 'user' ? 'var(--accent-primary)' : '#FFFFFF',
-                  color: msg.role === 'user' ? '#FFFFFF' : 'var(--text-primary)',
+                  backgroundColor: msg.role === 'user' ? 'var(--accent-primary)' : 'var(--bg-primary)',
+                  color: msg.role === 'user' ? 'var(--btn-primary-text)' : 'var(--text-primary)',
                   boxShadow: 'var(--shadow-sm)',
                   lineHeight: '1.6',
                   fontSize: '16px',
@@ -130,7 +173,7 @@ export const InterviewSession = () => {
             {isProcessing && (
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <div style={{
-                  padding: '16px 20px', borderRadius: '12px', backgroundColor: '#FFFFFF',
+                  padding: '16px 20px', borderRadius: '12px', backgroundColor: 'var(--bg-primary)',
                   border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)'
                 }}>
                   <Loader2 size={16} className="lucide-spin" style={{ animation: 'spin 1.5s linear infinite' }} /> AI is Thinking...
@@ -142,9 +185,9 @@ export const InterviewSession = () => {
         </div>
 
         {/* Input Area */}
-        <div style={{ padding: '24px 40px', backgroundColor: '#FFFFFF', borderTop: '1px solid var(--border-color)' }}>
+        <div style={{ padding: '24px 40px', backgroundColor: 'var(--bg-primary)', borderTop: '1px solid var(--border-color)' }}>
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-             {error && <div style={{ color: '#EF4444', fontSize: '14px', marginBottom: '8px' }}>{error}</div>}
+             {error && <div style={{ color: 'var(--error-text, #EF4444)', fontSize: '14px', marginBottom: '8px' }}>{error}</div>}
              <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '12px' }}>
                 <textarea 
                   value={inputMessage}
@@ -154,10 +197,10 @@ export const InterviewSession = () => {
                   style={{
                     flex: 1, padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)',
                     fontSize: '16px', fontFamily: 'inherit', resize: 'none', height: '60px', outline: 'none',
-                    transition: 'border-color 0.2s', backgroundColor: 'var(--bg-secondary)'
+                    transition: 'all 0.2s ease', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
-                  onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
+                  onFocus={(e) => { e.target.style.borderColor = 'var(--text-primary)'; e.target.style.boxShadow = '0 0 0 2px var(--focus-ring, rgba(255,255,255,0.2))'; }}
+                  onBlur={(e) => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.boxShadow = 'none'; }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();

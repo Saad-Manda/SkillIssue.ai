@@ -70,7 +70,6 @@ export const Dashboard = () => {
               interviews from the Planner agent.
             </p>
             <Button
-              variant="secondary"
               onClick={() => navigate("/profile")}
               fullWidth
             >

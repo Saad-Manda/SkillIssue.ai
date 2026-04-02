@@ -58,7 +58,7 @@ const InterviewDetails = () => {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
-      <Button variant="secondary" onClick={() => navigate('/dashboard')} style={{ marginBottom: '24px' }}>
+      <Button onClick={() => navigate('/dashboard')} style={{ marginBottom: '24px' }}>
         <ArrowLeft size={16} /> Back to Dashboard
       </Button>
 
@@ -70,7 +70,7 @@ const InterviewDetails = () => {
       </div>
 
       {jd && (
-        <Card style={{ marginBottom: '24px' }}>
+        <Card style={{ marginBottom: '24px', maxWidth: '100%' }}>
           <div 
             style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
             onClick={() => setShowJd(!showJd)}
@@ -102,7 +102,7 @@ const InterviewDetails = () => {
             <FileText size={20} />
             <span>AI Report</span>
           </div>
-        } style={{ marginBottom: '24px', width: '100%' }}>
+        } style={{ marginBottom: '24px', width: '100%', maxWidth: '100%' }}>
           <div className="markdown-body" style={{ color: 'var(--text-primary)', lineHeight: '1.7', fontSize: '16px' }}>
             <ReactMarkdown
               components={{
@@ -126,7 +126,7 @@ const InterviewDetails = () => {
           <MessageSquare size={20} />
           <span>Chat History</span>
         </div>
-      }>
+      } style={{ maxWidth: '100%' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {interview.chat_history && interview.chat_history.length > 0 ? (
             interview.chat_history.map((turn, index) => (

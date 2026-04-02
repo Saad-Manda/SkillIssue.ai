@@ -80,7 +80,7 @@ export const InterviewHistoryDetail = () => {
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '40px 20px' }}>
         <Card>
           <p style={{ color: '#EF4444', marginBottom: '16px' }}>{error}</p>
-          <Button variant="secondary" onClick={() => navigate('/dashboard')}>
+          <Button onClick={() => navigate('/dashboard')}>
             <ArrowLeft size={16} /> Back to Dashboard
           </Button>
         </Card>
@@ -93,10 +93,10 @@ export const InterviewHistoryDetail = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <h1 style={{ fontSize: '32px', margin: 0 }}>Interview Details</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <Button variant="secondary" onClick={() => navigate('/dashboard')}>
+          <Button onClick={() => navigate('/dashboard')}>
             <ArrowLeft size={16} /> Dashboard
           </Button>
-          <Button variant="secondary" onClick={handleViewJD}>
+          <Button onClick={handleViewJD}>
             <Briefcase size={16} /> View JD Used
           </Button>
         </div>
