@@ -11,9 +11,9 @@ from ..controllers.interview.delete_interview import delete_interview
 
 router = APIRouter(prefix="/api/v1/interview", tags=["interviews"])
 
-@router.get("/", response_model=List[dict])
-async def get_all_interviews_endpoint():
-    interviews = await get_all_interviews()
+@router.get("/{user_id}", response_model=List[dict])
+async def get_all_interviews_endpoint(user_id: str):
+    interviews = await get_all_interviews(user_id)
     return interviews
 
 @router.get("/{interview_id}", response_model=dict)
