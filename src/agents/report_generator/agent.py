@@ -1,6 +1,7 @@
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from ..llm import llm
+from ..session_logging import log_agent_error, log_agent_event, log_agent_start
 from .prompt import generate_report_prompt
 from ...models.states.states import SystemState
 from ...models.states.redis_session import parse_chat_history, session_store
@@ -10,6 +11,13 @@ def report_node(system_state: SystemState) -> SystemState:
 
     session_id = system_state.session_id
     session_state = session_store.get(session_id)
+    log_agent_start("report_generator", session_id, system_state)
+    log_agent_event(
+        session_id,
+        "report_generator",
+        "session_store_loaded",
+        session_state=session_state,
+    )
     print(f"[report_generator] start session_id={session_id}")
 
     user_summary = system_state.user_summary
@@ -18,7 +26,23 @@ def report_node(system_state: SystemState) -> SystemState:
     raw_history = parse_chat_history(raw_history)
     if not isinstance(raw_history, list):
         raw_history = []
-    print(type(raw_history[0]), raw_history[0].model_dump() if hasattr(raw_history[0], "model_dump") else raw_history[0])
+    log_agent_event(
+        session_id,
+        "report_generator",
+        "context_prepared",
+        user_summary=user_summary,
+        jd=jd,
+        raw_history=raw_history,
+    )
+    if raw_history:
+        print(
+            type(raw_history[0]),
+            raw_history[0].model_dump()
+            if hasattr(raw_history[0], "model_dump")
+            else raw_history[0],
+        )
+    else:
+        print("[report_generator] raw_history is empty")
     # 2. Format Chat History for the LLM
     # Convert stored turns into a readable interview script with metrics
     formatted_transcript = ""
@@ -115,6 +139,14 @@ def report_node(system_state: SystemState) -> SystemState:
     system_instruction, user_context_prompt = generate_report_prompt(
         user_summary, jd, formatted_transcript
     )
+    log_agent_event(
+        session_id,
+        "report_generator",
+        "prompt_built",
+        system_instruction=system_instruction,
+        user_context_prompt=user_context_prompt,
+        formatted_transcript=formatted_transcript,
+    )
 
     # 5. Invoke LLM
     messages = [
@@ -129,12 +161,20 @@ def report_node(system_state: SystemState) -> SystemState:
         )
         response = llm.invoke(messages)
         report = response.content
+        log_agent_event(
+            session_id,
+            "report_generator",
+            "llm_response",
+            response=response,
+        )
     except Exception as e:
         # Log error here if you have a logger
         print(f"[report_generator] Generation Error: {str(e)}")
+        log_agent_error(session_id, "report_generator", e, messages=messages)
 
     
     system_state.final_report = report
     print(f"[report_generator] done report_len={len(report or '')}")
+    log_agent_event(session_id, "report_generator", "done", updated_state=system_state)
 
     return system_state

@@ -3,14 +3,17 @@ from langchain_core.messages import AIMessage
 from ...models.states.redis_session import parse_chat_history, session_store
 from ...models.states.states import SystemState
 from ..llm import llm
+from ..session_logging import log_agent_error, log_agent_event, log_agent_start
 from .get_topic import get_current_phase, get_current_topic, get_next_topic
 from .prompt import dependent_question_prompt, independent_question_prompt
 
 
 def question_generator_node(system_state: SystemState) -> SystemState:
+    session_id = system_state.session_id
+    log_agent_start("question_generator", session_id, system_state)
 
     print(
-        f"[question_generator] start session_id={system_state.session_id} "
+        f"[question_generator] start session_id={session_id} "
         f"reason={system_state.current_turn_status} "
         f"is_indep={system_state.is_curr_question_independent} "
         f"k={system_state.current_topic_question_count} "
@@ -18,8 +21,13 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         f"topic_id={system_state.current_topic_id}"
     )
 
-    session_id = system_state.session_id
     session_state = session_store.get(session_id)
+    log_agent_event(
+        session_id,
+        "question_generator",
+        "session_store_loaded",
+        session_state=session_state,
+    )
 
     user_summary = system_state.user_summary
     jd = system_state.jd
@@ -32,6 +40,17 @@ def question_generator_node(system_state: SystemState) -> SystemState:
     raw_history = session_state.get("chat_history") or []
     chat_histor_tot = parse_chat_history(raw_history)
     chat_history = chat_histor_tot[:-k] if k and k > 0 else chat_histor_tot
+    log_agent_event(
+        session_id,
+        "question_generator",
+        "context_prepared",
+        phase_summary=phase_summary,
+        raw_history=raw_history,
+        chat_history=chat_history,
+        k=k,
+        reason=reason,
+        is_independent=is_indep,
+    )
 
     if reason == "TOPIC CHANGED":
         if chat_history:
@@ -56,6 +75,14 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         print(
             f"[question_generator] next phase={new_phase.name} topic_id={new_topic.topic_id}"
         )
+        log_agent_event(
+            session_id,
+            "question_generator",
+            "topic_selected",
+            phase=new_phase,
+            topic=new_topic,
+            branch="TOPIC CHANGED",
+        )
 
         messages = independent_question_prompt(
             previous_phase_summaries=phase_summary,
@@ -64,6 +91,13 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             phase=new_phase,
             topic=new_topic,
         )
+        log_agent_event(
+            session_id,
+            "question_generator",
+            "prompt_built",
+            messages=messages,
+            branch="TOPIC CHANGED",
+        )
 
         try:
             print(
@@ -71,8 +105,22 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             )
             response: AIMessage = llm.invoke(messages)
             new_question = response.content
+            log_agent_event(
+                session_id,
+                "question_generator",
+                "llm_response",
+                response=response,
+                branch="TOPIC CHANGED",
+            )
         except Exception as e:
             print(f"[question_generator] Error in LLM invocation: {e}")
+            log_agent_error(
+                session_id,
+                "question_generator",
+                e,
+                messages=messages,
+                branch="TOPIC CHANGED",
+            )
             raise
 
         system_state.current_question = new_question
@@ -82,6 +130,13 @@ def question_generator_node(system_state: SystemState) -> SystemState:
 
         print(
             f"[question_generator] done question_len={len(new_question or '')} (topic changed)"
+        )
+        log_agent_event(
+            session_id,
+            "question_generator",
+            "done",
+            branch="TOPIC CHANGED",
+            updated_state=system_state,
         )
 
         return system_state
@@ -101,6 +156,13 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             jd=jd,
             phase=current_phase,
         )
+        log_agent_event(
+            session_id,
+            "question_generator",
+            "prompt_built",
+            messages=messages,
+            branch="DEPENDENT",
+        )
 
         try:
             print(
@@ -108,8 +170,22 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             )
             response: AIMessage = llm.invoke(messages)
             new_question = response.content
+            log_agent_event(
+                session_id,
+                "question_generator",
+                "llm_response",
+                response=response,
+                branch="DEPENDENT",
+            )
         except Exception as e:
             print(f"[question_generator] Error in LLM invocation: {e}")
+            log_agent_error(
+                session_id,
+                "question_generator",
+                e,
+                messages=messages,
+                branch="DEPENDENT",
+            )
             raise
 
         system_state.current_question = new_question
@@ -117,6 +193,13 @@ def question_generator_node(system_state: SystemState) -> SystemState:
 
         print(
             f"[question_generator] done question_len={len(new_question or '')} (dependent)"
+        )
+        log_agent_event(
+            session_id,
+            "question_generator",
+            "done",
+            branch="DEPENDENT",
+            updated_state=system_state,
         )
 
         return system_state
@@ -140,6 +223,13 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         phase=current_phase,
         topic=topic,
     )
+    log_agent_event(
+        session_id,
+        "question_generator",
+        "prompt_built",
+        messages=messages,
+        branch="INDEPENDENT",
+    )
 
     try:
         print(
@@ -147,8 +237,22 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         )
         response: AIMessage = llm.invoke(messages)
         new_question = response.content
+        log_agent_event(
+            session_id,
+            "question_generator",
+            "llm_response",
+            response=response,
+            branch="INDEPENDENT",
+        )
     except Exception as e:
         print(f"[question_generator] Error in LLM invocation: {e}")
+        log_agent_error(
+            session_id,
+            "question_generator",
+            e,
+            messages=messages,
+            branch="INDEPENDENT",
+        )
         raise
 
     system_state.current_question = new_question
@@ -158,6 +262,13 @@ def question_generator_node(system_state: SystemState) -> SystemState:
 
     print(
         f"[question_generator] done question_len={len(new_question or '')} (independent)"
+    )
+    log_agent_event(
+        session_id,
+        "question_generator",
+        "done",
+        branch="INDEPENDENT",
+        updated_state=system_state,
     )
 
     return system_state
