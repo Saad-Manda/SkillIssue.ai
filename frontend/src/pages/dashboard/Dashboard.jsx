@@ -4,16 +4,23 @@ import { Button } from '../../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { Plus, History, Trash2, Calendar, FileText } from 'lucide-react';
 import { api } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchInterviews = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const data = await api.getAllInterviews();
+        const data = await api.getAllInterviews(user.id);
         setInterviews(data);
       } catch (error) {
         console.error('Failed to fetch interviews:', error);
@@ -22,7 +29,7 @@ export const Dashboard = () => {
       }
     };
     fetchInterviews();
-  }, []);
+  }, [user?.id]);
 
   const handleDelete = async (e, interviewId) => {
     e.stopPropagation(); // prevent navigating to details

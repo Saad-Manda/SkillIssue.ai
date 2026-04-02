@@ -118,8 +118,8 @@ export const api = {
   },
 
   // --- Stored interview history ---
-  getAllInterviews: async () => {
-    const response = await fetch(`${API_BASE_URL}/interview/`);
+  getAllInterviews: async (userId) => {
+    const response = await fetch(`${API_BASE_URL}/interview/${userId}`);
     return handleResponse(response);
   },
 
