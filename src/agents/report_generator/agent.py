@@ -55,6 +55,12 @@ def report_node(system_state: SystemState) -> SystemState:
             response_text = msg.response
             metrics = msg.metrics
 
+            plan = system_state.plan
+            topic_name = next(
+                (t.topic for p in plan.phase if p.name == phase_name for t in p.topics if t.topic_id == topic_id),
+                None
+            )
+
             metrics_text = ""
             if metrics is not None:
                 try:
@@ -75,7 +81,7 @@ def report_node(system_state: SystemState) -> SystemState:
                 metrics_text = "; ".join(metrics_pairs)
 
             formatted_transcript += (
-                f"[PHASE={phase} TOPIC={topic_id}]\n"
+                f"[PHASE={phase} TOPIC_ID={topic_id} TOPIC={topic_name}]\n"
                 f"[INTERVIEWER]: {question}\n"
                 f"[CANDIDATE]: {response_text}\n"
             )
@@ -88,6 +94,12 @@ def report_node(system_state: SystemState) -> SystemState:
             phase = msg.get("phase_name", "")
             topic_id = msg.get("topic_id", "")
             metrics = msg.get("metrics")
+
+            plan = system_state.plan
+            topic_name = next(
+                (t.topic for p in plan.phase if p.name == phase_name for t in p.topics if t.topic_id == topic_id),
+                None
+            )
 
             metrics_text = ""
             if isinstance(metrics, dict):
@@ -104,7 +116,7 @@ def report_node(system_state: SystemState) -> SystemState:
                 metrics_text = "; ".join(metrics_pairs)
 
             formatted_transcript += (
-                f"[PHASE={phase} TOPIC={topic_id}]\n"
+                f"[PHASE={phase} TOPIC_ID={topic_id}] TOPIC={topic_name}\n"
                 f"[INTERVIEWER]: {msg.get('question', '')}\n"
                 f"[CANDIDATE]: {msg.get('response', '')}\n"
             )
