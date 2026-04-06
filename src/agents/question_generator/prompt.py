@@ -35,10 +35,12 @@ def independent_question_prompt(
         for s in previous_phase_summaries
     ]
     user_json = user_summary
+    previous_k_turns_json = [t.model_dump() for t in previous_k_turns]
     jd_json = _to_pretty_json(jd)
     phase_json = _to_pretty_json(phase)
     topic_json = _to_pretty_json(topic)
     previous_phase_summaries_json = _to_pretty_json(previous_phase_summaries_json)
+    previous_k_turns_json = _to_pretty_json(previous_k_turns_json)
 
     base_instruction = """
 You are a practical, industry-style Technical Interviewer generating exactly one interview question.
