@@ -87,6 +87,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         messages = independent_question_prompt(
             previous_phase_summaries=phase_summary,
             user_summary=user_summary,
+            previous_k_turns=chat_history,
             jd=jd,
             phase=new_phase,
             topic=new_topic,
@@ -219,6 +220,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
     messages = independent_question_prompt(
         previous_phase_summaries=phase_summary,
         user_summary=user_summary,
+        previous_k_turns=chat_history,
         jd=jd,
         phase=current_phase,
         topic=topic,

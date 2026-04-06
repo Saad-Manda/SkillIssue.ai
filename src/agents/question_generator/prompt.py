@@ -25,6 +25,7 @@ def _to_pretty_json(value: Any) -> str:
 def independent_question_prompt(
     previous_phase_summaries: List[PhaseSummary],
     user_summary: str,
+    previous_k_turns: List[Turn],
     jd: JobDescription,
     phase: Phase,
     topic: Topic,
@@ -49,13 +50,22 @@ INTERVIEW PHILOSOPHY:
 QUESTION STYLE RULES:
 - Keep the question clear, conversational, and easy to understand.
 - Test one main idea only.
-- Keep scope tight and relevant to the target topic.
+- Keep scope tight and relevant to the current phase/topic.
+- Prefer practical reasoning over trivia.
+
+CONTINUITY RULES:
+- Use RECENT CHAT CONTEXT to maintain natural conversation progression.
+- The question should feel like the next logical interview step, but still stand alone.
+- Avoid repeating or paraphrasing already asked questions.
+- If recent turns contain unresolved details, do not reference them with pronouns like “that/this/it/your approach above”.
 """
 
     mode_instruction = """
-BRANCH MODE: INDEPENDENT
-- Do NOT create a follow-up that depends on the candidate's immediate prior answer.
-- Align strictly to the provided current phase and current topic.
+BRANCH MODE: INDEPENDENT (HARD CONSTRAINT)
+- The new question must be topically independent from the candidate’s immediately previous answer.
+- Do NOT ask a follow-up question.
+- Do NOT require information from the previous answer to understand or answer this question.
+- Keep continuity of interview flow using recent chat only for tone, difficulty calibration, and avoiding repetition.
 """
 
     context_block = f"""
@@ -73,6 +83,9 @@ TOPIC CONTEXT (Current Topic):
 
 PREVIOUS PHASE SUMMARIES (before this new phase):
 {previous_phase_summaries_json}
+
+RECENT CHAT CONTEXT (previous k turns):
+{previous_k_turns_json}
 """
 
     constraints = """
@@ -112,17 +125,26 @@ INTERVIEW PHILOSOPHY:
 - Evaluate clarity of thinking, fundamentals, and reasoning.
 - Ask what a real interviewer would ask in a real interview.
 
+FOLLOW-UP QUALITY RULES:
+- Use prior responses to probe depth, trade-offs, edge cases, or contradictions.
+- If candidate gave a claim/design/decision earlier, ask them to justify, extend, or stress-test it.
+- Avoid generic standalone questions that could be asked without prior context.
+- Avoid repeating previously asked questions verbatim.
+
 QUESTION STYLE RULES:
 - Keep the question clear, conversational, and easy to understand.
 - Test one main idea only.
-- Prefer depth, trade-offs, and reasoning over trivia.
+- Keep scope tight and relevant.
 """
 
     mode_instruction = """
-BRANCH MODE: DEPENDENT
-- Generate a follow-up question within the same phase/topic flow.
-- Ground the follow-up in previous turns and current phase summary.
-- Do NOT jump to a new independent topic.
+BRANCH MODE: DEPENDENT (HARD CONSTRAINT)
+- The new question must be a follow-up question.
+- It must explicitly depend on prior conversation context.
+- The dependency may be on:
+    1) the immediately previous answer, or
+    2) multiple earlier turns/questions, if that produces a better probe.
+- Stay within the same phase/topic flow; do NOT jump to a fresh independent topic.
 """
 
     context_block = f"""
@@ -148,7 +170,6 @@ OUTPUT RULES:
 - Keep it concise.
 - Do NOT include explanation, labels, numbering, JSON, or meta commentary.
 - Do NOT ask multi-part or layered questions.
-- Do NOT repeat a previously asked question.
 """
 
     system_content = base_instruction + "\n" + mode_instruction + "\n" + constraints
