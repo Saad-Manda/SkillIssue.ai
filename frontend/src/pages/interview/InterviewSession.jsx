@@ -196,7 +196,7 @@ export const InterviewSession = () => {
                   disabled={isProcessing}
                   style={{
                     flex: 1, padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)',
-                    fontSize: '16px', fontFamily: 'inherit', resize: 'none', height: '60px', outline: 'none',
+                    fontSize: '16px', fontFamily: 'inherit', resize: 'vertical', minHeight: '60px', height: '100px', outline: 'none',
                     transition: 'all 0.2s ease', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)'
                   }}
                   onFocus={(e) => { e.target.style.borderColor = 'var(--text-primary)'; e.target.style.boxShadow = '0 0 0 2px var(--focus-ring, rgba(255,255,255,0.2))'; }}

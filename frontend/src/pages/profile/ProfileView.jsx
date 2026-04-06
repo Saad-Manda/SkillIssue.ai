@@ -107,6 +107,9 @@ export const ProfileView = () => {
                   <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '8px' }}>
                     {exp.start_date} - {exp.end_date || 'Present'} • {exp.emp_type.replace('_', ' ')} • {exp.loc_type || 'Unknown'}
                   </p>
+                  {exp.description && (
+                    <p style={{ marginTop: '8px', fontSize: '15px', lineHeight: '1.6', marginBottom: '8px' }}>{exp.description}</p>
+                  )}
                   {exp.skills_used?.length > 0 && (
                     <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Skills: {exp.skills_used.join(', ')}</p>
                   )}
@@ -165,6 +168,9 @@ export const ProfileView = () => {
                   <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '8px' }}>
                     {ld.start_date} - {ld.end_date || 'Present'}
                   </p>
+                  {ld.description && (
+                    <p style={{ marginTop: '8px', fontSize: '15px', lineHeight: '1.6', marginBottom: '8px' }}>{ld.description}</p>
+                  )}
                   {ld.skills_used?.length > 0 && (
                     <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Skills: {ld.skills_used.join(', ')}</p>
                   )}
