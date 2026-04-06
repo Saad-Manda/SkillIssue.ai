@@ -57,7 +57,7 @@ def report_node(system_state: SystemState) -> SystemState:
 
             plan = system_state.plan
             topic_name = next(
-                (t.topic for p in plan.phase if p.name == phase_name for t in p.topics if t.topic_id == topic_id),
+                (t.topic for p in plan.phase if p.name == phase for t in p.topics if t.topic_id == topic_id),
                 None
             )
 
@@ -97,7 +97,7 @@ def report_node(system_state: SystemState) -> SystemState:
 
             plan = system_state.plan
             topic_name = next(
-                (t.topic for p in plan.phase if p.name == phase_name for t in p.topics if t.topic_id == topic_id),
+                (t.topic for p in plan.phase if p.name == phase for t in p.topics if t.topic_id == topic_id),
                 None
             )
 
