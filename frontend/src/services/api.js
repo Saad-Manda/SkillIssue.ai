@@ -123,8 +123,8 @@ export const api = {
     return handleResponse(response);
   },
 
-  getInterviewDetails: async (interviewId) => {
-    const response = await fetch(`${API_BASE_URL}/interview/${interviewId}`);
+  getInterviewDetails: async (userId, interviewId) => {
+    const response = await fetch(`${API_BASE_URL}/interview/${userId}/${interviewId}`);
     return handleResponse(response);
   },
 

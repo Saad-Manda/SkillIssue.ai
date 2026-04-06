@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { ArrowLeft, Briefcase, FileText, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
@@ -9,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 const InterviewDetails = () => {
   const { interview_id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [interview, setInterview] = useState(null);
   const [jd, setJd] = useState(null);
@@ -18,9 +20,10 @@ const InterviewDetails = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user?.id) return;
       setLoading(true);
       try {
-        const interviewData = await api.getInterviewDetails(interview_id);
+        const interviewData = await api.getInterviewDetails(user.id, interview_id);
         setInterview(interviewData);
 
         if (interviewData && interviewData.jd_id) {
@@ -41,7 +44,7 @@ const InterviewDetails = () => {
     };
 
     fetchData();
-  }, [interview_id]);
+  }, [interview_id, user?.id]);
 
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '100px 20px' }}>Loading interview details...</div>;
