@@ -53,19 +53,18 @@ QUESTION STYLE RULES:
 - Keep scope tight and relevant to the current phase/topic.
 - Prefer practical reasoning over trivia.
 
-CONTINUITY RULES:
-- Use RECENT CHAT CONTEXT to maintain natural conversation progression.
-- The question should feel like the next logical interview step, but still stand alone.
-- Avoid repeating or paraphrasing already asked questions.
-- If recent turns contain unresolved details, do not reference them with pronouns like “that/this/it/your approach above”.
+CONVERSATION FLOW (MANDATORY)
+- Use RECENT CHAT CONTEXT to maintain continuity of tone, seniority level, and progression.
+- The question must include a short conversational bridge that links to the ongoing interview flow.
+- The bridge can reference high-level direction (e.g., interests, role focus, phase shift), but not depend on details of the last answer.
+- Avoid abrupt topic jumps; move from broad → role-aligned → technical depth naturally.
 """
 
     mode_instruction = """
-BRANCH MODE: INDEPENDENT (HARD CONSTRAINT)
-- The new question must be topically independent from the candidate’s immediately previous answer.
-- Do NOT ask a follow-up question.
-- Do NOT require information from the previous answer to understand or answer this question.
-- Keep continuity of interview flow using recent chat only for tone, difficulty calibration, and avoiding repetition.
+BRANCH MODE: INDEPENDENT (STRICT)
+- The question must NOT require the candidate’s last answer to be understandable or answerable.
+- The question must NOT probe, challenge, or drill into a specific claim from the last answer.
+- The question must be aligned to current phase/topic.
 """
 
     context_block = f"""
@@ -126,6 +125,7 @@ INTERVIEW PHILOSOPHY:
 - Ask what a real interviewer would ask in a real interview.
 
 FOLLOW-UP QUALITY RULES:
+- Explicitly anchor to prior context (a claim, design choice, trade-off, assumption, or gap).
 - Use prior responses to probe depth, trade-offs, edge cases, or contradictions.
 - If candidate gave a claim/design/decision earlier, ask them to justify, extend, or stress-test it.
 - Avoid generic standalone questions that could be asked without prior context.
