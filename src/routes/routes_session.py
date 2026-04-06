@@ -13,6 +13,18 @@ router = APIRouter(prefix="/api/v1/session", tags=["sessions"])
 logger = logging.getLogger(__name__)
 
 
+def get_topic_name(plan, topic_id: str) -> str:
+    if not plan or not getattr(plan, "phase", None):
+        return topic_id
+    for phase in plan.phase:
+        if not getattr(phase, "topics", None):
+            continue
+        for topic in phase.topics:
+            if topic.topic_id == topic_id:
+                return topic.topic
+    return topic_id
+
+
 class SubmitAnswerRequest(BaseModel):
     answer: str
 
@@ -36,6 +48,7 @@ async def start_session_endpoint(
         "current_question": state.current_question,
         "current_phase_name": state.current_phase_name,
         "current_topic_id": state.current_topic_id,
+        "current_topic_name": get_topic_name(state.plan, state.current_topic_id),
         "chat": chat,
     }
 
@@ -57,6 +70,7 @@ async def submit_answer_endpoint(session_id: str, payload: SubmitAnswerRequest):
         "current_question": state.current_question,
         "current_phase_name": state.current_phase_name,
         "current_topic_id": state.current_topic_id,
+        "current_topic_name": get_topic_name(state.plan, state.current_topic_id),
         "turn_count": turn_count,
         "store_count": store_count,
         "chat": chat,

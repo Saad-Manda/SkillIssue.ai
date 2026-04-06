@@ -47,7 +47,7 @@ export const InterviewSession = () => {
       if (init.current_question) {
         setChat([{ role: 'ai', content: init.current_question }]);
         setCurrentPhase(init.current_phase_name || "Getting Started");
-        setCurrentTopic(init.current_topic_id || "");
+        setCurrentTopic(init.current_topic_name || init.current_topic_id || "");
       }
     } else {
       // If we land here without state, the backend lacks a standalone GET status endpoint for the initial question.
@@ -80,7 +80,7 @@ export const InterviewSession = () => {
       if (response.current_question) {
         setChat(prev => [...prev, { role: 'ai', content: response.current_question }]);
         setCurrentPhase(response.current_phase_name || currentPhase);
-        setCurrentTopic(response.current_topic_id || currentTopic);
+        setCurrentTopic(response.current_topic_name || response.current_topic_id || currentTopic);
       } else {
          // Transition to Report page if the backend didn't return a question (interview over)
          navigate(`/report/${session_id}`);
