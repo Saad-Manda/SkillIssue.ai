@@ -30,6 +30,7 @@ def independent_question_prompt(
     phase: Phase,
     topic: Topic,
     router_reason: str = "",
+    is_topic_transition: bool = False,
 ) -> list:
     previous_phase_summaries_json = [
         s.model_dump() if hasattr(s, "model_dump") else s
@@ -63,7 +64,16 @@ CONVERSATION FLOW (MANDATORY)
 - Avoid abrupt topic jumps; move from broad → role-aligned → technical depth naturally.
 """
 
-    mode_instruction = """
+    if is_topic_transition:
+        mode_instruction = f"""
+BRANCH MODE: TOPIC TRANSITION
+- You are transitioning to a new topic: **{topic.topic}** (within phase: {phase.name}).
+- The RECENT CHAT CONTEXT below contains the candidate's last answer from the previous topic — use it as your bridge source.
+- Do NOT evaluate or praise hollowly ("Great answer!", "Interesting!").
+- The question that follows must be squarely focused on the new topic: **{topic.topic}**.
+"""
+    else:
+        mode_instruction = """
 BRANCH MODE: INDEPENDENT (STRICT)
 - The question itself must NOT require the candidate's last answer to be understandable or answerable.
 - The question itself must NOT probe, challenge, or drill into a specific claim from the last answer.
