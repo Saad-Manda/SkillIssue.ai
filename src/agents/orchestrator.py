@@ -13,7 +13,7 @@ from .phase_summarizer.agent import phase_summarizer_node
 from .router.agent import router_node
 from .metric_calculator.agent import metrics_node
 from .report_generator.agent import report_node
-from .session_logging import log_agent_event
+from .utils import _route_after_metrics, _route_after_router
 
 load_dotenv()
 
@@ -37,20 +37,6 @@ def _build_graph():
     graph.set_entry_point("user_summarizer")
     graph.add_edge("user_summarizer", "planner")
     graph.add_edge("planner", "router")
-    
-    def _route_after_router(state: SystemState) -> str:
-        log_agent_event(
-            state.session_id,
-            "orchestrator",
-            "route_after_router",
-            should_generate_report=state.should_generate_report,
-            current_turn_status=state.current_turn_status,
-            current_topic_id=state.current_topic_id,
-            current_phase_name=state.current_phase_name,
-        )
-        if state.should_generate_report:
-            return "report_generator"
-        return "question_generator"
 
     graph.add_conditional_edges(
         "router",
@@ -59,20 +45,6 @@ def _build_graph():
     )
     graph.add_edge("question_generator", "phase_summarizer")
     graph.add_edge("phase_summarizer", "metric_calculator")
-    
-    def _route_after_metrics(state: SystemState) -> str:
-        log_agent_event(
-            state.session_id,
-            "orchestrator",
-            "route_after_metrics",
-            should_generate_report=state.should_generate_report,
-            current_turn_status=state.current_turn_status,
-            current_topic_id=state.current_topic_id,
-            current_phase_name=state.current_phase_name,
-        )
-        if state.should_generate_report:
-            return "report_generator"
-        return "router"
 
     graph.add_conditional_edges(
         "metric_calculator",
