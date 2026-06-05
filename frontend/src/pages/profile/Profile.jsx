@@ -288,6 +288,9 @@ export const Profile = () => {
                 <div style={{ marginTop: '16px' }}>
                   <Input label="Skills Used (comma separated)" name="skills_used" value={exp.skills_used} onChange={(e) => updateExperience(i, e)} />
                 </div>
+                <div style={{ marginTop: '16px' }}>
+                  <Input label="Description" name="description" value={exp.description || ''} onChange={(e) => updateExperience(i, e)} multiline />
+                </div>
               </ArrayItem>
             ))}
             <Button type="button" onClick={addExperience}><Plus size={16}/> Add Experience</Button>
@@ -324,7 +327,7 @@ export const Profile = () => {
                     <Input label="Skills Used (comma separated)" name="skills_used" value={proj.skills_used} onChange={(e) => updateProject(i, e)} required />
                   </div>
                   <div style={{ gridColumn: '1 / -1' }}>
-                    <Input label="Description" name="description" value={proj.description} onChange={(e) => updateProject(i, e)} required />
+                    <Input label="Description" name="description" value={proj.description} onChange={(e) => updateProject(i, e)} required multiline />
                   </div>
                 </div>
               </ArrayItem>
@@ -343,6 +346,9 @@ export const Profile = () => {
                   <Input label="End Date" type="date" name="end_date" value={ld.end_date} onChange={(e) => updateLeadership(i, e)} />
                   <div style={{ gridColumn: '1 / -1' }}>
                     <Input label="Skills Used" name="skills_used" value={ld.skills_used} onChange={(e) => updateLeadership(i, e)} />
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <Input label="Description" name="description" value={ld.description || ''} onChange={(e) => updateLeadership(i, e)} multiline />
                   </div>
                 </div>
               </ArrayItem>

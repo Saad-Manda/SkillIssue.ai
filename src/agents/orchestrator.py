@@ -13,6 +13,7 @@ from .phase_summarizer.agent import phase_summarizer_node
 from .router.agent import router_node
 from .metric_calculator.agent import metrics_node
 from .report_generator.agent import report_node
+from .session_logging import log_agent_event
 
 load_dotenv()
 
@@ -41,6 +42,15 @@ def _build_graph():
     graph.add_edge("phase_summarizer", "metric_calculator")
     
     def _route_after_metrics(state: SystemState) -> str:
+        log_agent_event(
+            state.session_id,
+            "orchestrator",
+            "route_after_metrics",
+            should_generate_report=state.should_generate_report,
+            current_turn_status=state.current_turn_status,
+            current_topic_id=state.current_topic_id,
+            current_phase_name=state.current_phase_name,
+        )
         if state.should_generate_report:
             return "report_generator"
         return "router"

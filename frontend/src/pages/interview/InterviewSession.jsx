@@ -47,7 +47,7 @@ export const InterviewSession = () => {
       if (init.current_question) {
         setChat([{ role: 'ai', content: init.current_question }]);
         setCurrentPhase(init.current_phase_name || "Getting Started");
-        setCurrentTopic(init.current_topic_id || "");
+        setCurrentTopic(init.current_topic_name || init.current_topic_id || "");
       }
     } else {
       // If we land here without state, the backend lacks a standalone GET status endpoint for the initial question.
@@ -80,7 +80,7 @@ export const InterviewSession = () => {
       if (response.current_question) {
         setChat(prev => [...prev, { role: 'ai', content: response.current_question }]);
         setCurrentPhase(response.current_phase_name || currentPhase);
-        setCurrentTopic(response.current_topic_id || currentTopic);
+        setCurrentTopic(response.current_topic_name || response.current_topic_id || currentTopic);
       } else {
          // Transition to Report page if the backend didn't return a question (interview over)
          navigate(`/report/${session_id}`);
@@ -196,7 +196,7 @@ export const InterviewSession = () => {
                   disabled={isProcessing}
                   style={{
                     flex: 1, padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)',
-                    fontSize: '16px', fontFamily: 'inherit', resize: 'none', height: '60px', outline: 'none',
+                    fontSize: '16px', fontFamily: 'inherit', resize: 'vertical', minHeight: '60px', height: '100px', outline: 'none',
                     transition: 'all 0.2s ease', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)'
                   }}
                   onFocus={(e) => { e.target.style.borderColor = 'var(--text-primary)'; e.target.style.boxShadow = '0 0 0 2px var(--focus-ring, rgba(255,255,255,0.2))'; }}

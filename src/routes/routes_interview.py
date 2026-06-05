@@ -16,9 +16,9 @@ async def get_all_interviews_endpoint(user_id: str):
     interviews = await get_all_interviews(user_id)
     return interviews
 
-@router.get("/{interview_id}", response_model=dict)
-async def get_interview_endpoint(interview_id: str):
-    interview = await get_interview(interview_id=interview_id)
+@router.get("/{user_id}/{interview_id}", response_model=dict)
+async def get_interview_endpoint(user_id: str, interview_id: str):
+    interview = await get_interview(interview_id=interview_id, user_id=user_id)
     return interview
 
 @router.post("/", response_model=dict)

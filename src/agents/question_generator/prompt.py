@@ -25,6 +25,7 @@ def _to_pretty_json(value: Any) -> str:
 def independent_question_prompt(
     previous_phase_summaries: List[PhaseSummary],
     user_summary: str,
+    previous_k_turns: List[Turn],
     jd: JobDescription,
     phase: Phase,
     topic: Topic,
@@ -34,10 +35,12 @@ def independent_question_prompt(
         for s in previous_phase_summaries
     ]
     user_json = user_summary
+    previous_k_turns_json = [t.model_dump() for t in previous_k_turns]
     jd_json = _to_pretty_json(jd)
     phase_json = _to_pretty_json(phase)
     topic_json = _to_pretty_json(topic)
     previous_phase_summaries_json = _to_pretty_json(previous_phase_summaries_json)
+    previous_k_turns_json = _to_pretty_json(previous_k_turns_json)
 
     base_instruction = """
 You are a practical, industry-style Technical Interviewer generating exactly one interview question.
@@ -49,13 +52,21 @@ INTERVIEW PHILOSOPHY:
 QUESTION STYLE RULES:
 - Keep the question clear, conversational, and easy to understand.
 - Test one main idea only.
-- Keep scope tight and relevant to the target topic.
+- Keep scope tight and relevant to the current phase/topic.
+- Prefer practical reasoning over trivia.
+
+CONVERSATION FLOW (MANDATORY)
+- Use RECENT CHAT CONTEXT to maintain continuity of tone, seniority level, and progression.
+- The question must include a short conversational bridge that links to the ongoing interview flow.
+- The bridge can reference high-level direction (e.g., interests, role focus, phase shift), but not depend on details of the last answer.
+- Avoid abrupt topic jumps; move from broad → role-aligned → technical depth naturally.
 """
 
     mode_instruction = """
-BRANCH MODE: INDEPENDENT
-- Do NOT create a follow-up that depends on the candidate's immediate prior answer.
-- Align strictly to the provided current phase and current topic.
+BRANCH MODE: INDEPENDENT (STRICT)
+- The question must NOT require the candidate’s last answer to be understandable or answerable.
+- The question must NOT probe, challenge, or drill into a specific claim from the last answer.
+- The question must be aligned to current phase/topic.
 """
 
     context_block = f"""
@@ -73,6 +84,9 @@ TOPIC CONTEXT (Current Topic):
 
 PREVIOUS PHASE SUMMARIES (before this new phase):
 {previous_phase_summaries_json}
+
+RECENT CHAT CONTEXT (previous k turns):
+{previous_k_turns_json}
 """
 
     constraints = """
@@ -112,17 +126,27 @@ INTERVIEW PHILOSOPHY:
 - Evaluate clarity of thinking, fundamentals, and reasoning.
 - Ask what a real interviewer would ask in a real interview.
 
+FOLLOW-UP QUALITY RULES:
+- Explicitly anchor to prior context (a claim, design choice, trade-off, assumption, or gap).
+- Use prior responses to probe depth, trade-offs, edge cases, or contradictions.
+- If candidate gave a claim/design/decision earlier, ask them to justify, extend, or stress-test it.
+- Avoid generic standalone questions that could be asked without prior context.
+- Avoid repeating previously asked questions verbatim.
+
 QUESTION STYLE RULES:
 - Keep the question clear, conversational, and easy to understand.
 - Test one main idea only.
-- Prefer depth, trade-offs, and reasoning over trivia.
+- Keep scope tight and relevant.
 """
 
     mode_instruction = """
-BRANCH MODE: DEPENDENT
-- Generate a follow-up question within the same phase/topic flow.
-- Ground the follow-up in previous turns and current phase summary.
-- Do NOT jump to a new independent topic.
+BRANCH MODE: DEPENDENT (HARD CONSTRAINT)
+- The new question must be a follow-up question.
+- It must explicitly depend on prior conversation context.
+- The dependency may be on:
+    1) the immediately previous answer, or
+    2) multiple earlier turns/questions, if that produces a better probe.
+- Stay within the same phase/topic flow; do NOT jump to a fresh independent topic.
 """
 
     context_block = f"""
@@ -148,7 +172,6 @@ OUTPUT RULES:
 - Keep it concise.
 - Do NOT include explanation, labels, numbering, JSON, or meta commentary.
 - Do NOT ask multi-part or layered questions.
-- Do NOT repeat a previously asked question.
 """
 
     system_content = base_instruction + "\n" + mode_instruction + "\n" + constraints

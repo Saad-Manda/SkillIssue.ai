@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Any
 
 import numpy as np
 from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.output_parsers import JsonOutputParser
 from sentence_transformers import SentenceTransformer
 
 from ...agents.llm import llm
@@ -16,6 +17,7 @@ Turn    = Dict[str, str]
 Metrics = Dict[str, Any]
 
 _embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+_json_parser = JsonOutputParser()
 
 
 def embed(text: str) -> np.ndarray:
@@ -48,7 +50,7 @@ def _llm_critique(system: str, user_content: str) -> Optional[str]:
 
 def _parse_llm_json(raw: str, field: str = "score") -> float:
     try:
-        obj = json.loads(re.search(r'\{.*\}', raw, re.S).group())
+        obj = _json_parser.parse(raw)
         v = float(obj[field])
         return round(v / 10 if v > 1 else v, 4)
     except Exception:

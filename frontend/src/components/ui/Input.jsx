@@ -1,4 +1,5 @@
-export const Input = ({ label, id, error, ...props }) => {
+export const Input = ({ label, id, error, multiline, rows = 4, ...props }) => {
+  const Component = multiline ? 'textarea' : 'input';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
       {label && (
@@ -6,8 +7,9 @@ export const Input = ({ label, id, error, ...props }) => {
           {label}
         </label>
       )}
-      <input
+      <Component
         id={id}
+        rows={multiline ? rows : undefined}
         style={{
           padding: '10px 14px',
           border: `1px solid ${error ? '#EF4444' : 'var(--border-color)'}`,
@@ -17,7 +19,8 @@ export const Input = ({ label, id, error, ...props }) => {
           outline: 'none',
           transition: 'border-color 0.2s, box-shadow 0.2s',
           backgroundColor: 'var(--bg-primary)',
-          color: 'var(--text-primary)'
+          color: 'var(--text-primary)',
+          resize: multiline ? 'vertical' : undefined
         }}
         onFocus={(e) => {
           e.target.style.borderColor = 'var(--text-primary)';

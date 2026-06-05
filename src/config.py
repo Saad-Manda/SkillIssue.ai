@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     DATABASE_URL: str
     MODEL: str 
-    GOOGLE_API_KEY: str
+    GOOGLE_API_KEY: str | None = None
+    GROQ_API_KEY: str | None = None
     REDIS_URL: str
     SECRET_KEY: str
     ALGORITHM: str
@@ -19,7 +20,7 @@ class Settings(BaseSettings):
     ATLAS_DB_URI: str
     COLLECTION_NAME: str
 
-    model_config = SettingsConfigDict(env_file = BASE_DIR / ".env")
+    model_config = SettingsConfigDict(env_file = BASE_DIR / ".env", extra="ignore")
 
 
 settings = Settings()
