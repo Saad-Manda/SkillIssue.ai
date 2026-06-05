@@ -1,7 +1,7 @@
 import re
 import json
 from typing import List, Optional, Any, Dict
-from .utils import embed, cosine, _prior_answers, _prior_questions, _history_text, _llm_critique, _parse_llm_json
+from .utils import embed, cosine, _prior_answers, _prior_questions, _history_text, _llm_critique, _parse_llm_json, _json_parser
 from .utils import _CAUSAL_RE, _ACTION_RE, _EXAMPLE_RE, _HEDGE_RE,  _PASSIVE_RE, _QUANTITY_RE, _SHALLOW_RE, _STAR_RE, _TECH_RE
 from .utils import Turn, Metrics
 
@@ -230,7 +230,7 @@ ANSWER: {answer}"""
     if raw is None:
         return {"score": -1.0, "flags": []}
     try:
-        obj   = json.loads(re.search(r'\{.*\}', raw, re.S).group())
+        obj   = _json_parser.parse(raw)
         score = float(obj.get("score", -1.0))
         score = round(score / 10 if score > 1 else score, 4)
         return {"score": score, "flags": obj.get("flags", [])}

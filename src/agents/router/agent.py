@@ -1,6 +1,7 @@
 import json
 import re
 from langchain_core.messages import AIMessage
+from langchain_core.output_parsers import JsonOutputParser
 
 from ..llm import llm
 from ..session_logging import log_agent_error, log_agent_event, log_agent_start
@@ -78,6 +79,8 @@ def router_node(system_state: SystemState) -> SystemState:
     messages = router_prompt(chat_history=chat_history)
     log_agent_event(session_id, "router", "prompt_built", messages=messages)
 
+    parser = JsonOutputParser()
+
     try:
         print(f"[router] invoking llm messages={len(messages)} chat_history_used={len(chat_history)}")
         response: AIMessage = llm.invoke(messages)
@@ -85,10 +88,7 @@ def router_node(system_state: SystemState) -> SystemState:
         print(f"[router] llm_response_preview={preview}")
         log_agent_event(session_id, "router", "llm_response", response=response)
         
-        raw = response.content.strip()
-        raw = re.sub(r"^```(?:json)?\s*", "", raw)
-        raw = re.sub(r"\s*```$", "", raw.strip())
-        result = json.loads(raw)
+        result = parser.parse(response.content)
         
     except Exception as e:
         print(f"[router] Error in LLM invocation: {e}")

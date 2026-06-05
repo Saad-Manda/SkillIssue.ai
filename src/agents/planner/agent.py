@@ -1,4 +1,5 @@
 from langchain_core.messages import AIMessage
+from langchain_core.output_parsers import JsonOutputParser
 
 from ..llm import llm
 from ..session_logging import log_agent_error, log_agent_event, log_agent_start
@@ -19,13 +20,17 @@ def planner_node(system_state: SystemState) -> SystemState:
     messages = planner_prompt(system_state)
     log_agent_event(session_id, "planner", "prompt_built", messages=messages)
 
+    parser = JsonOutputParser(pydantic_object=Plan)
+
     try:
         print(f"[planner] invoking llm messages={len(messages)}")
         response: AIMessage = llm.invoke(messages)
         preview = (response.content or "")[:120].replace("\n", "\\n")
         print(f"[planner] llm_response_preview={preview}")
         log_agent_event(session_id, "planner", "llm_response", response=response)
-        plan = Plan.model_validate_json(response.content)
+        
+        parsed_data = parser.parse(response.content)
+        plan = Plan.model_validate(parsed_data)
     except Exception as e:
         print(f"[planner] Error in LLM invocation: {e}")
         log_agent_error(
