@@ -91,6 +91,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             jd=jd,
             phase=new_phase,
             topic=new_topic,
+            router_reason=reason,
         )
         log_agent_event(
             session_id,
@@ -156,6 +157,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             user_summary=user_summary,
             jd=jd,
             phase=current_phase,
+            router_reason=reason,
         )
         log_agent_event(
             session_id,
@@ -224,6 +226,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         jd=jd,
         phase=current_phase,
         topic=topic,
+        router_reason=reason,
     )
     log_agent_event(
         session_id,
