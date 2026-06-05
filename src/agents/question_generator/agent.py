@@ -38,19 +38,21 @@ def question_generator_node(system_state: SystemState) -> SystemState:
 
     phase_summary = session_state.get("phase_summary", [])
     raw_history = session_state.get("chat_history") or []
-    chat_histor_tot = parse_chat_history(raw_history)
-    # For DEPENDENT / same-topic INDEPENDENT branches: strip the current-topic block
-    # so the LLM doesn't see questions it must not anchor to.
-    chat_history = chat_histor_tot[:-k] if k and k > 0 else chat_histor_tot
-    # For TOPIC CHANGED: preserve the very last turn so the LLM can bridge from it.
-    last_turn = chat_histor_tot[-1] if chat_histor_tot else None
+    chat_history_full = parse_chat_history(raw_history)
+    # Pre-topic background: turns *before* the current-topic block.
+    # Used only as background context for the INDEPENDENT branch prompt,
+    # so the LLM does not accidentally anchor its question to current-topic turns.
+    chat_history_pre_topic = chat_history_full[:-k] if k > 0 else chat_history_full
+    # last_turn: used as bridge context for TOPIC CHANGED transition.
+    last_turn = chat_history_full[-1] if chat_history_full else None
     log_agent_event(
         session_id,
         "question_generator",
         "context_prepared",
         phase_summary=phase_summary,
         raw_history=raw_history,
-        chat_history=chat_history,
+        chat_history_full=chat_history_full,
+        chat_history_pre_topic=chat_history_pre_topic,
         last_turn=last_turn.model_dump() if last_turn else None,
         k=k,
         reason=reason,
@@ -60,9 +62,9 @@ def question_generator_node(system_state: SystemState) -> SystemState:
     if reason == "TOPIC CHANGED":
         # Use the full (unsliced) history for topic lookup — we need the last
         # turn's phase/topic to know which topic we are transitioning *from*.
-        if chat_histor_tot:
-            prev_phase = chat_histor_tot[-1].phase_name
-            prev_topic_id = chat_histor_tot[-1].topic_id
+        if chat_history_full:
+            prev_phase = chat_history_full[-1].phase_name
+            prev_topic_id = chat_history_full[-1].topic_id
 
             print(
                 f"[question_generator] TOPIC CHANGED from phase={prev_phase} topic_id={prev_topic_id}"
@@ -167,7 +169,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         return system_state
 
     elif not is_indep:
-        current_phase_name = chat_history[-1].phase_name
+        current_phase_name = chat_history_full[-1].phase_name
         current_phase = get_current_phase(plan, current_phase_name)
         if current_phase is None:
             raise ValueError(f"Could not find phase in plan: {current_phase_name}")
@@ -176,7 +178,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         print(f"[question_generator] dependent follow-up phase={current_phase_name}")
         messages = dependent_question_prompt(
             current_phase_summary=current_phase_summary,
-            previous_k_turns=chat_history,
+            previous_k_turns=chat_history_full[-k:],
             user_summary=user_summary,
             jd=jd,
             phase=current_phase,
@@ -230,8 +232,8 @@ def question_generator_node(system_state: SystemState) -> SystemState:
 
         return system_state
 
-    current_phase_name = chat_history[-1].phase_name
-    current_topic_id = chat_history[-1].topic_id
+    current_phase_name = chat_history_full[-1].phase_name
+    current_topic_id = chat_history_full[-1].topic_id
 
     topic = get_current_topic(plan, current_phase_name, current_topic_id)
     if topic is None:
@@ -245,7 +247,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
     messages = independent_question_prompt(
         previous_phase_summaries=phase_summary,
         user_summary=user_summary,
-        previous_k_turns=chat_history,
+        previous_k_turns=chat_history_pre_topic,
         jd=jd,
         phase=current_phase,
         topic=topic,
