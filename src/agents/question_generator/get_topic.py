@@ -17,6 +17,8 @@ def get_next_topic(plan, prev_phase, prev_topic_id):
 
             if new_topic_idx is None:
                 new_phase_idx = j + 1
+                if new_phase_idx >= len(plan.phase):
+                    return None, None
                 new_topic_idx = 0
 
     return new_phase_idx, new_topic_idx
