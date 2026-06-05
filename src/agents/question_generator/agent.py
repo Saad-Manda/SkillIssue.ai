@@ -39,7 +39,11 @@ def question_generator_node(system_state: SystemState) -> SystemState:
     phase_summary = session_state.get("phase_summary", [])
     raw_history = session_state.get("chat_history") or []
     chat_histor_tot = parse_chat_history(raw_history)
+    # For DEPENDENT / same-topic INDEPENDENT branches: strip the current-topic block
+    # so the LLM doesn't see questions it must not anchor to.
     chat_history = chat_histor_tot[:-k] if k and k > 0 else chat_histor_tot
+    # For TOPIC CHANGED: preserve the very last turn so the LLM can bridge from it.
+    last_turn = chat_histor_tot[-1] if chat_histor_tot else None
     log_agent_event(
         session_id,
         "question_generator",
@@ -47,15 +51,18 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         phase_summary=phase_summary,
         raw_history=raw_history,
         chat_history=chat_history,
+        last_turn=last_turn.model_dump() if last_turn else None,
         k=k,
         reason=reason,
         is_independent=is_indep,
     )
 
     if reason == "TOPIC CHANGED":
-        if chat_history:
-            prev_phase = chat_history[-1].phase_name
-            prev_topic_id = chat_history[-1].topic_id
+        # Use the full (unsliced) history for topic lookup — we need the last
+        # turn's phase/topic to know which topic we are transitioning *from*.
+        if chat_histor_tot:
+            prev_phase = chat_histor_tot[-1].phase_name
+            prev_topic_id = chat_histor_tot[-1].topic_id
 
             print(
                 f"[question_generator] TOPIC CHANGED from phase={prev_phase} topic_id={prev_topic_id}"
@@ -80,7 +87,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             new_topic = new_phase.topics[new_topic_idx]
 
         else:
-            print(f"[question_generator] TOPIC CHANGED")
+            print(f"[question_generator] TOPIC CHANGED (no prior history)")
             new_phase = plan.phase[0]
             new_topic = new_phase.topics[0]
 
@@ -96,14 +103,18 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             branch="TOPIC CHANGED",
         )
 
+        # Pass only the last turn as bridge context (option a) so the LLM can
+        # naturally acknowledge the candidate's final answer before pivoting.
+        bridge_turns = [last_turn] if last_turn else []
         messages = independent_question_prompt(
             previous_phase_summaries=phase_summary,
             user_summary=user_summary,
-            previous_k_turns=chat_history,
+            previous_k_turns=bridge_turns,
             jd=jd,
             phase=new_phase,
             topic=new_topic,
             router_reason=reason,
+            is_topic_transition=True,
         )
         log_agent_event(
             session_id,
