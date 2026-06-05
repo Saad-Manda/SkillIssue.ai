@@ -48,8 +48,26 @@ def router_node(system_state: SystemState) -> SystemState:
     print(f"[router] max_question_count={max_question_count}")
     
     
-    ## Independent + topic Change
     if k >= max_question_count:
+        last_phase = system_state.plan.phase[-1]
+        last_topic = last_phase.topics[-1]
+        is_final_topic = (
+            current_topic.topic_id == last_topic.topic_id
+            and system_state.current_phase_name == last_phase.name
+        )
+
+        if is_final_topic:
+            print("[router] last topic of last phase reached -> generating report")
+            system_state.should_generate_report = True
+            log_agent_event(
+                session_id,
+                "router",
+                "done",
+                reason="interview_complete",
+                updated_state=system_state,
+            )
+            return system_state
+
         print("[router] k>=max_question_count -> independent, TOPIC CHANGED")
         system_state.is_curr_question_independent = True
         system_state.current_turn_status = "TOPIC CHANGED"

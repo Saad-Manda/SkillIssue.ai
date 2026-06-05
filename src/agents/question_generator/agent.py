@@ -64,6 +64,18 @@ def question_generator_node(system_state: SystemState) -> SystemState:
                 plan, prev_phase, prev_topic_id
             )
 
+            if new_phase_idx is None:
+                print("[question_generator] no next topic found -> generating report")
+                system_state.should_generate_report = True
+                log_agent_event(
+                    session_id,
+                    "question_generator",
+                    "done",
+                    reason="interview_complete_sentinel",
+                    updated_state=system_state,
+                )
+                return system_state
+
             new_phase = plan.phase[new_phase_idx]
             new_topic = new_phase.topics[new_topic_idx]
 

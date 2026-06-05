@@ -15,9 +15,10 @@ langchain==1.2.8
 langchain-community==0.4.1
 langchain-core==1.2.9
 langchain-google-genai==4.2.0
+langchain-groq==1.1.2
 langserve==0.3.3
 langsmith==0.4.49
-langgraph==1.0.4
+langgraph==1.0.10
 motor==3.7.1
 passlib==1.7.4
 pydantic==2.12.5
