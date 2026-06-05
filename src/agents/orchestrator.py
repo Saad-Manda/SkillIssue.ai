@@ -37,7 +37,26 @@ def _build_graph():
     graph.set_entry_point("user_summarizer")
     graph.add_edge("user_summarizer", "planner")
     graph.add_edge("planner", "router")
-    graph.add_edge("router", "question_generator")
+    
+    def _route_after_router(state: SystemState) -> str:
+        log_agent_event(
+            state.session_id,
+            "orchestrator",
+            "route_after_router",
+            should_generate_report=state.should_generate_report,
+            current_turn_status=state.current_turn_status,
+            current_topic_id=state.current_topic_id,
+            current_phase_name=state.current_phase_name,
+        )
+        if state.should_generate_report:
+            return "report_generator"
+        return "question_generator"
+
+    graph.add_conditional_edges(
+        "router",
+        _route_after_router,
+        {"question_generator": "question_generator", "report_generator": "report_generator"}
+    )
     graph.add_edge("question_generator", "phase_summarizer")
     graph.add_edge("phase_summarizer", "metric_calculator")
     
