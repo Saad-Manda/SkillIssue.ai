@@ -65,8 +65,9 @@ CONVERSATION FLOW (MANDATORY)
 
     mode_instruction = """
 BRANCH MODE: INDEPENDENT (STRICT)
-- The question must NOT require the candidate’s last answer to be understandable or answerable.
-- The question must NOT probe, challenge, or drill into a specific claim from the last answer.
+- The question itself must NOT require the candidate's last answer to be understandable or answerable.
+- The question itself must NOT probe, challenge, or drill into a specific claim from the last answer.
+- You MAY (and should) open with a brief 1-2 sentence acknowledgment that references the overall conversation direction — but the question that follows must stand alone.
 - The question must be aligned to current phase/topic.
 """
 
@@ -96,10 +97,14 @@ Formulate your question to directly address this directive.
 
     constraints = """
 OUTPUT RULES:
-- Generate ONLY one interview question.
-- Keep it concise.
-- Do NOT include explanation, labels, numbering, JSON, or meta commentary.
-- Do NOT ask multi-part or layered questions.
+Your response MUST have exactly two parts, in this order:
+
+1. BRIDGE (1–2 sentences): Naturally acknowledge the conversation so far — the candidate's general approach, a topic they covered, or the direction of the interview. Do NOT evaluate or praise with hollow phrases ("Great answer!", "Interesting!"). Be natural and human.
+2. QUESTION (1 sentence): The next interview question. It must be self-contained — no dependency on the last answer's specifics.
+
+Do NOT include labels, numbering, JSON, or meta commentary.
+Do NOT ask multi-part or layered questions.
+Keep the total response concise (3–5 sentences combined).
 """
 
     system_content = base_instruction + "\n" + mode_instruction + "\n" + constraints
@@ -143,6 +148,12 @@ QUESTION STYLE RULES:
 - Keep the question clear, conversational, and easy to understand.
 - Test one main idea only.
 - Keep scope tight and relevant.
+
+CONVERSATION FLOW (MANDATORY):
+- Before asking your question, open with 1–2 sentences that acknowledge something specific from the candidate's most recent answer (a claim they made, a technology they mentioned, a trade-off they described, or an approach they took).
+- The acknowledgment does NOT need to be evaluative — simply referencing what they said is enough.
+- Do NOT use hollow filler phrases ("Great answer!", "That's very interesting!").
+- The acknowledgment should flow naturally into the follow-up question.
 """
 
     mode_instruction = """
@@ -178,10 +189,14 @@ Formulate your follow-up question to directly address this directive.
 
     constraints = """
 OUTPUT RULES:
-- Generate ONLY one interview question.
-- Keep it concise.
-- Do NOT include explanation, labels, numbering, JSON, or meta commentary.
-- Do NOT ask multi-part or layered questions.
+Your response MUST have exactly two parts, in this order:
+
+1. BRIDGE (1–2 sentences): Acknowledge something specific from the candidate's prior answer — a claim, a design decision, a technology choice, or a gap you observed. Be natural and conversational. Do NOT use hollow filler ("Great!", "Interesting!"). Make it feel like a real interviewer heard them.
+2. QUESTION (1 sentence): The follow-up question. It must directly build on the prior conversation.
+
+Do NOT include labels, numbering, JSON, or meta commentary.
+Do NOT ask multi-part or layered questions.
+Keep the total response concise (3–5 sentences combined).
 """
 
     system_content = base_instruction + "\n" + mode_instruction + "\n" + constraints
