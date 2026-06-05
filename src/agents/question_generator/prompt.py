@@ -29,6 +29,7 @@ def independent_question_prompt(
     jd: JobDescription,
     phase: Phase,
     topic: Topic,
+    router_reason: str = "",
 ) -> list:
     previous_phase_summaries_json = [
         s.model_dump() if hasattr(s, "model_dump") else s
@@ -87,6 +88,10 @@ PREVIOUS PHASE SUMMARIES (before this new phase):
 
 RECENT CHAT CONTEXT (previous k turns):
 {previous_k_turns_json}
+
+ROUTER DIRECTIVE (why this question is being generated — HIGHEST PRIORITY):
+{router_reason if router_reason else "No specific directive. Use your best judgment based on context above."}
+Formulate your question to directly address this directive.
 """
 
     constraints = """
@@ -112,6 +117,7 @@ def dependent_question_prompt(
     user_summary: str,
     jd: JobDescription,
     phase: Phase,
+    router_reason: str = "",
 ) -> list:
     current_phase_summary_json = _to_pretty_json(current_phase_summary)
     previous_k_turns_json = [t.model_dump() for t in previous_k_turns]
@@ -164,6 +170,10 @@ CURRENT PHASE SUMMARY:
 
 RECENT CHAT CONTEXT (previous k turns):
 {previous_k_turns_json}
+
+ROUTER DIRECTIVE (why this follow-up is being generated — HIGHEST PRIORITY):
+{router_reason if router_reason else "No specific directive. Use your best judgment based on context above."}
+Formulate your follow-up question to directly address this directive.
 """
 
     constraints = """
