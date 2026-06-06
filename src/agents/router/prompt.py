@@ -1,121 +1,67 @@
 from typing import List
-
-# pyrefly: ignore [missing-import]
+import json
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from ...models.states.turn import Turn
 
 
-def router_prompt(chat_history: List[Turn]) -> list:
+def router_prompt(
+    chat_history: List[Turn],
+    current_topic_id: str,
+    current_phase_name: str,
+    k: int,
+    max_question_count: int,
+    previous_phase_summary: str = "",
+) -> list:
     """
-    Build messages for the router agent that decides whether
-    the next question should be independent or dependent for the
-    current topic, using only chat_history + per-turn metrics.
+    Build messages for the router agent that decides the routing intent
+    (advance_topic, dependent_followup, dependent_new_angle) for the current topic,
+    using current phase turns, the topic question counter, and optional previous phase summary.
     """
-    chat_history_json = [t.model_dump() for t in chat_history]
+    chat_history_json = json.dumps([t.model_dump() for t in chat_history], indent=2, ensure_ascii=False)
 
-    system_content = """
-You are a routing assistant for an interview question generator.
+    system_content = """You are an expert routing assistant for an adaptive interview question generator.
 
 YOUR GOAL
-- Given the full chat history for a single candidate, decide what the next
-  question generator should do for the **current topic**:
-  - Case 1: Same-topic **independent** question.
-  - Case 2: Same-topic **dependent** follow-up question.
+Given candidate context and chat history of the current phase, select the next routing action (intent) and focus area.
 
-INPUT STRUCTURE
-- You receive `chat_history`, a list of turns.
-- Each turn has:
-  - `chat_id`: unique identifier
-  - `question`: interviewer question text
-  - `response`: candidate answer text
-  - `metrics`: list of metric objects for this question–answer pair
-  - `phase_name`: interview phase name
-  - `topic_id`: identifier for the topic of this question
+INTENTS
+1. "advance_topic"
+   - Use this when:
+     - The candidate has sufficiently demonstrated their skills on the current topic.
+     - OR the question counter indicates we should move on to maintain interview pace.
+     - CRITICAL: Always keep the question counter in mind. If the candidate is stuck, or has already had multiple questions on this topic, do NOT get stuck in a loop; select "advance_topic" to advance the interview.
+2. "dependent_followup"
+   - Use this when the candidate's last answer shows gaps, shallow reasoning, or potential red flags on this topic that need to be probed directly.
+   - The "focus" should specify what exact claim or gap to probe.
+3. "dependent_new_angle"
+   - Use this when the candidate answered the last question well, but we want to explore a different facet, scenario, or practical tradeoff of the same topic before moving on.
+   - The "focus" should specify what angle to explore.
 
-ABOUT METRICS (high-level guidance)
-- Metrics approximate how well the candidate answered:
-  - Relevance / completeness (e.g. QAR, ACS)
-  - Depth / specificity (e.g. TDS, SS)
-  - Confidence / clarity (e.g. CCS)
-  - Behavioral structure (e.g. STAR)
-  - Factual correctness and red flags (e.g. FARQ, RFD)
-- Higher scores (closer to 1.0) indicate stronger performance on that signal.
-- Very low scores or explicit red flags indicate gaps or problems.
+DECISION GUIDELINES
+- Do NOT use hard comparisons or formulas. Evaluate qualitatively.
+- Be mindful of the question counter: if the counter is close to or has reached the soft limit, lean heavily towards "advance_topic" unless there is an extremely critical gap to follow up on.
 
-DECISION LOGIC (QUALITATIVE, NOT NUMERIC)
-1. Focus on the **most recent contiguous block of turns with the same `topic_id`**.
-   - This block represents the current topic the candidate is being evaluated on.
-   - Use earlier topics only as background; do not base the decision on them.
-
-2. For this current-topic block, evaluate:
-   - Has the candidate **substantially answered** the core question(s)?
-   - Do metrics across these turns suggest:
-     - High relevance and completeness?
-     - Reasonable depth and specificity?
-     - No major factual red flags or avoidance?
-
-3. Choose **Case 1 – independent same-topic question** when:
-   - The latest answer (and earlier turns for this topic) are generally strong,
-     or metrics are missing/default but the answer qualitatively seems solid.
-   - The topic feels sufficiently covered that a fresh angle on the **same topic**
-     is more informative than digging further into the last specific answer.
-   - The next question should:
-     - Stay under the same `topic_id`
-     - Explore a different scenario, trade-off, or sub-angle
-     - NOT depend on the exact wording of the last response.
-
-4. Choose **Case 2 – dependent same-topic question** when:
-   - The latest answer (or several answers in this topic) show:
-     - Gaps, shallow reasoning, missing details, or low depth.
-     - Low relevance/completeness or significant ambiguity.
-     - Signs that a targeted follow-up would clarify understanding.
-   - The next question should:
-     - Directly build on specific parts of one or more prior responses
-     - Ask for clarification, justification, an example, or edge case, etc
-     - Help resolve uncertainty about the candidate’s real skill on this topic.
-
-5. Be robust to noisy metrics:
-   - Treat metrics as **signals**, not hard constraints.
-   - If metrics disagree with the actual text, trust the text more.
-   - If metrics are missing or default, fall back to a textual judgement.
-
-OUTPUT FORMAT (STRICT)
-- You MUST return **only** a single JSON object with this exact shape:
-CRITICAL: Your response must start with `{` and end with `}`. 
-Do not include ```json, ```, or any other text outside the JSON object
-
+OUTPUT FORMAT
+You MUST return ONLY a single JSON object. Do NOT wrap it in code fences (e.g. ```json ... ```) or include any conversational filler.
 {
-  "is_dependent": true or false,
-  "reason": "short explanation (2–4 sentences) of your routing decision"
+  "intent": "advance_topic | dependent_followup | dependent_new_angle",
+  "focus": "Short phrase describing the probe/angle to focus on (can be empty if intent is advance_topic)"
 }
-
-
-REASON FIELD REQUIREMENTS
-- Always provide a `reason` string, regardless of the decision.
-- If `is_dependent` is true:
-  - Explain **which prior turn(s)** you are building on
-    (e.g. by `chat_id` or by relative position like \"last answer\").
-  - Briefly state **what is missing or unclear** and what the follow-up should probe.
-- If `is_dependent` is false (independent same-topic question):
-  - Explain why the current-topic answers are strong or complete enough.
-  - Briefly indicate what kind of **new angle** the next independent question should cover
-    under the same topic (e.g. different scenario, trade-off, or constraint).
-
-DO NOT:
-- Do NOT generate the next question itself.
-- Do NOT change phases or topics.
-- Do NOT return anything other than the JSON object described above.
 """
 
-    human_content = f"""
-CHAT HISTORY (all turns so far, newest last):
-{chat_history_json}
+    context_lines = [
+        f"Current Phase: {current_phase_name}",
+        f"Current Topic ID: {current_topic_id}",
+        f"Questions asked on this topic so far: {k} (Guideline soft limit: {max_question_count})",
+    ]
 
-Based on this chat_history alone, decide whether the next question
-should be independent (same-topic new angle) or dependent (follow-up)
-according to the rules above.Return ONLY the raw JSON object. No markdown, no code fences, no explanation outside the JSON..
-"""
+    if previous_phase_summary:
+        context_lines.append(f"\nSummary of the Previous Completed Phase (for context):\n{previous_phase_summary}")
+
+    context_lines.append(f"\nChat History for Current Phase (newest last):\n{chat_history_json}")
+
+    human_content = "\n".join(context_lines) + "\n\nSelect the next intent and focus. Return ONLY the raw JSON object."
 
     return [
         SystemMessage(content=system_content),
