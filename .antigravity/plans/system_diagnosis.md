@@ -169,6 +169,15 @@ The plan model (`plan_model.py`) has no concept of "topic description" or "what 
 2. Dependent (follow-up on last answer)
 3. TOPIC CHANGED (advance to next topic) — but this is NOT decided by the LLM!
 
+**Comments**
+- We will have only 3 scenarios, as we will generate plan such that each topic is independent of each other
+- *Independent Question* Topic transition only
+- *Dependent Question*
+  1. Scenario One is the one you told different angle or different perspective, bcoz context used is same but the angle of asking question is different so. indirectly its a dependent question
+  2. Other is a proper dependent question u know about it
+
+> I want to hear your thoughts about it, which one draws a clear boundary and simple and efficeint logic
+
 #### 🚨 CRITICAL ARCHITECTURE DEFECT: The router can only say "same topic"
 
 ```python
