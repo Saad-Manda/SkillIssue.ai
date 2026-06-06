@@ -22,15 +22,14 @@ def _to_pretty_json(value: Any) -> str:
         return repr(value)
 
 
-def independent_question_prompt(
+def topic_transition_prompt(
     previous_phase_summaries: List[PhaseSummary],
     user_summary: str,
     previous_k_turns: List[Turn],
     jd: JobDescription,
     phase: Phase,
     topic: Topic,
-    router_reason: str = "",
-    is_topic_transition: bool = False,
+    router_intent: str = "",
 ) -> list:
     previous_phase_summaries_json = [
         s.model_dump() if hasattr(s, "model_dump") else s
@@ -64,21 +63,12 @@ CONVERSATION FLOW (MANDATORY)
 - Avoid abrupt topic jumps; move from broad → role-aligned → technical depth naturally.
 """
 
-    if is_topic_transition:
-        mode_instruction = f"""
+    mode_instruction = f"""
 BRANCH MODE: TOPIC TRANSITION
 - You are transitioning to a new topic: **{topic.topic}** (within phase: {phase.name}).
 - The RECENT CHAT CONTEXT below contains the candidate's last answer from the previous topic — use it as your bridge source.
 - Do NOT evaluate or praise hollowly ("Great answer!", "Interesting!").
 - The question that follows must be squarely focused on the new topic: **{topic.topic}**.
-"""
-    else:
-        mode_instruction = """
-BRANCH MODE: INDEPENDENT (STRICT)
-- The question itself must NOT require the candidate's last answer to be understandable or answerable.
-- The question itself must NOT probe, challenge, or drill into a specific claim from the last answer.
-- You MAY (and should) open with a brief 1-2 sentence acknowledgment that references the overall conversation direction — but the question that follows must stand alone.
-- The question must be aligned to current phase/topic.
 """
 
     context_block = f"""
@@ -100,9 +90,8 @@ PREVIOUS PHASE SUMMARIES (before this new phase):
 RECENT CHAT CONTEXT (previous k turns):
 {previous_k_turns_json}
 
-ROUTER DIRECTIVE (why this question is being generated — HIGHEST PRIORITY):
-{router_reason if router_reason else "No specific directive. Use your best judgment based on context above."}
-Formulate your question to directly address this directive.
+ROUTER DIRECTIVE (why this question is being generated):
+{router_intent if router_intent else "Transitioning to a new topic."}
 """
 
     constraints = """
@@ -132,12 +121,15 @@ def dependent_question_prompt(
     user_summary: str,
     jd: JobDescription,
     phase: Phase,
-    router_reason: str = "",
+    topic: Topic,
+    router_intent: str,
+    router_focus: str = "",
 ) -> list:
     current_phase_summary_json = _to_pretty_json(current_phase_summary)
     previous_k_turns_json = [t.model_dump() for t in previous_k_turns]
     jd_json = _to_pretty_json(jd)
     phase_json = _to_pretty_json(phase)
+    topic_json = _to_pretty_json(topic)
     previous_k_turns_json = _to_pretty_json(previous_k_turns_json)
 
     base_instruction = """
@@ -146,13 +138,6 @@ You are a practical, industry-style Technical Interviewer generating exactly one
 INTERVIEW PHILOSOPHY:
 - Evaluate clarity of thinking, fundamentals, and reasoning.
 - Ask what a real interviewer would ask in a real interview.
-
-FOLLOW-UP QUALITY RULES:
-- Explicitly anchor to prior context (a claim, design choice, trade-off, assumption, or gap).
-- Use prior responses to probe depth, trade-offs, edge cases, or contradictions.
-- If candidate gave a claim/design/decision earlier, ask them to justify, extend, or stress-test it.
-- Avoid generic standalone questions that could be asked without prior context.
-- Avoid repeating previously asked questions verbatim.
 
 QUESTION STYLE RULES:
 - Keep the question clear, conversational, and easy to understand.
@@ -166,14 +151,20 @@ CONVERSATION FLOW (MANDATORY):
 - The acknowledgment should flow naturally into the follow-up question.
 """
 
-    mode_instruction = """
-BRANCH MODE: DEPENDENT (HARD CONSTRAINT)
-- The new question must be a follow-up question.
-- It must explicitly depend on prior conversation context.
-- The dependency may be on:
-    1) the immediately previous answer, or
-    2) multiple earlier turns/questions, if that produces a better probe.
-- Stay within the same phase/topic flow; do NOT jump to a fresh independent topic.
+    if router_intent == "dependent_followup":
+        mode_instruction = f"""
+BRANCH MODE: DEPENDENT FOLLOW-UP (HARD CONSTRAINT)
+- The new question must be a direct follow-up question probing details, gaps, or assumptions.
+- It must explicitly build on specific parts of the candidate's prior responses.
+- TARGET FOCUS SIGNAL: Probes/focuses on: {router_focus}
+"""
+    else:
+        # dependent_new_angle
+        mode_instruction = f"""
+BRANCH MODE: DEPENDENT NEW ANGLE (STRICT)
+- The candidate answered the last question well. Do NOT probe specific gaps or details of their last answer.
+- Instead, explore a different angle, tradeoff, scenario, or edge case under the SAME topic: **{topic.topic}**.
+- TARGET FOCUS SIGNAL: Explore this angle: {router_focus}
 """
 
     context_block = f"""
@@ -186,15 +177,14 @@ CANDIDATE SUMMARY:
 PHASE CONTEXT (Current Phase):
 {phase_json}
 
+TOPIC CONTEXT (Current Topic):
+{topic_json}
+
 CURRENT PHASE SUMMARY:
 {current_phase_summary_json}
 
-RECENT CHAT CONTEXT (previous k turns):
+RECENT CHAT CONTEXT (turns in this topic):
 {previous_k_turns_json}
-
-ROUTER DIRECTIVE (why this follow-up is being generated — HIGHEST PRIORITY):
-{router_reason if router_reason else "No specific directive. Use your best judgment based on context above."}
-Formulate your follow-up question to directly address this directive.
 """
 
     constraints = """
@@ -202,7 +192,7 @@ OUTPUT RULES:
 Your response MUST have exactly two parts, in this order:
 
 1. BRIDGE (1–2 sentences): Acknowledge something specific from the candidate's prior answer — a claim, a design decision, a technology choice, or a gap you observed. Be natural and conversational. Do NOT use hollow filler ("Great!", "Interesting!"). Make it feel like a real interviewer heard them.
-2. QUESTION (1 sentence): The follow-up question. It must directly build on the prior conversation.
+2. QUESTION (1 sentence): The question. It must build on the prior conversation but align with the branch mode instruction.
 
 Do NOT include labels, numbering, JSON, or meta commentary.
 Do NOT ask multi-part or layered questions.
