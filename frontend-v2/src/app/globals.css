@@ -1,0 +1,135 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ── shadcn/ui CSS variables (light theme = default) ── */
+@layer base {
+  :root {
+    --background:   250 250 248;   /* warm-bg */
+    --foreground:   28 25 23;      /* text-main */
+    --card:         255 255 255;
+    --card-foreground: 28 25 23;
+    --popover:      255 255 255;
+    --popover-foreground: 28 25 23;
+    --primary:      217 119 6;     /* brand-600 amber */
+    --primary-foreground: 255 255 255;
+    --secondary:    245 243 238;   /* warm-muted */
+    --secondary-foreground: 28 25 23;
+    --muted:        245 243 238;
+    --muted-foreground: 120 113 108; /* text-secondary */
+    --accent:       254 243 199;   /* brand-100 */
+    --accent-foreground: 120 62 8; /* brand-800 */
+    --destructive:  220 38 38;
+    --destructive-foreground: 255 255 255;
+    --border:       232 229 223;   /* warm-border */
+    --input:        232 229 223;
+    --ring:         217 119 6;     /* brand-600 */
+    --radius:       0.5rem;
+  }
+
+  /* ── Dark mode override ── */
+  .dark {
+    --background:   28 25 23;
+    --foreground:   250 250 248;
+    --card:         41 37 36;
+    --card-foreground: 250 250 248;
+    --popover:      41 37 36;
+    --popover-foreground: 250 250 248;
+    --primary:      251 191 36;    /* brand-400 — lighter in dark */
+    --primary-foreground: 28 25 23;
+    --secondary:    68 64 60;
+    --secondary-foreground: 245 243 238;
+    --muted:        68 64 60;
+    --muted-foreground: 168 162 158;
+    --accent:       92 72 19;
+    --accent-foreground: 251 191 36;
+    --destructive:  185 28 28;
+    --destructive-foreground: 254 226 226;
+    --border:       68 64 60;
+    --input:        68 64 60;
+    --ring:         251 191 36;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-warm-bg text-text-main font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  h1, h2, h3 {
+    @apply font-sans font-semibold tracking-tight text-text-main;
+  }
+
+  /* ── Scrollbar styling (minimal) ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-warm-muted; }
+  ::-webkit-scrollbar-thumb { @apply bg-warm-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-text-muted; }
+
+  /* ── Focus ring (brand color) ── */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-600 ring-offset-2 ring-offset-white;
+  }
+
+  /* ── Markdown body (for report) ── */
+  .prose-report {
+    @apply text-text-main leading-relaxed;
+  }
+  .prose-report h1 {
+    @apply text-2xl font-semibold mt-8 mb-4 pb-3 border-b border-warm-border;
+  }
+  .prose-report h2 {
+    @apply text-xl font-semibold mt-6 mb-3;
+  }
+  .prose-report h3 {
+    @apply text-lg font-medium mt-4 mb-2;
+  }
+  .prose-report p {
+    @apply mb-4 text-base text-text-main;
+  }
+  .prose-report ul {
+    @apply mb-4 pl-6 space-y-1 list-disc;
+  }
+  .prose-report li {
+    @apply text-base text-text-main;
+  }
+  .prose-report strong {
+    @apply font-semibold text-text-main;
+  }
+  .prose-report code {
+    @apply font-mono text-sm bg-warm-muted px-1.5 py-0.5 rounded text-brand-700;
+  }
+  .prose-report pre {
+    @apply font-mono text-sm bg-warm-muted p-4 rounded-lg overflow-x-auto my-4 border border-warm-border;
+  }
+  .prose-report table {
+    @apply w-full text-sm border-collapse my-4;
+  }
+  .prose-report th {
+    @apply text-left font-medium text-text-secondary bg-warm-muted px-3 py-2 border border-warm-border;
+  }
+  .prose-report td {
+    @apply px-3 py-2 border border-warm-border;
+  }
+}
+
+/* ── Utility classes ── */
+@layer utilities {
+  .animate-fade-in  { animation: fadeIn  0.3s  ease-out; }
+  .animate-slide-up { animation: slideUp 0.35s ease-out; }
+
+  @keyframes fadeIn  { from { opacity: 0; }                          to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Textarea auto-resize base */
+  .textarea-auto {
+    field-sizing: content;
+    min-height: 60px;
+  }
+}
