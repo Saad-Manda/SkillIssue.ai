@@ -93,14 +93,13 @@ Each Topic must:
 
 Topic weights within a phase must sum approximately to the phase weight.
 
-MAX_QUESTION_COUNT & EVALUATION ANGLES PER TOPIC
+MAX_QUESTION_COUNT PER TOPIC
 
 - Assign max_question_count at plan creation for every topic as a SOFT GUIDELINE for the router.
 - Range is 0 to 3 questions per topic. Decide based on the topic's weight and importance to the JD:
   - High weight / JD-critical: 2 or 3 questions.
   - Medium weight: 1 or 2 questions.
   - Low weight / complimentary: 0 or 1 question.
-- For each topic, also define a list of 2-3 specific `evaluation_angles` that can be explored (e.g., ["conceptual understanding", "trade-offs", "edge cases"]).
 - Ensures the interview depth follows JD priorities, not the user's strengths.
 
 PRIORITIZATION LOGIC
@@ -163,15 +162,14 @@ The output MUST be raw JSON only:
           "topic": "string",
           "source": "jd|resume|inferred",
           "weight": 0.0,
-          "max_question_count": 0,
-          "evaluation_angles": ["string"]
+          "max_question_count": 0
         }}
       ]
     }}
   ]
 }}
 
-Each topic must have "weight", "max_question_count" (0–3), and "evaluation_angles" (2-3 items) set.
+Each topic must have both "weight" and "max_question_count" (0–3) set.
 
 Do internal reasoning piecewise for User, JD, and each Phase schema instance, but output only the final JSON object.
 
