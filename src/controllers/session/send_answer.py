@@ -30,7 +30,7 @@ def submit_answer(
     next_state = _run_graph(updated_state, resume=True)
 
     session_data = session_store.get(session_id) or {}
-    turns = session_data.get("chat_history") or []
+    turns = session_data.get("chat_history", [])
     chat: list[dict] = []
     for turn in turns:
         chat.append({"role": "assistant", "content": turn["question"]})
