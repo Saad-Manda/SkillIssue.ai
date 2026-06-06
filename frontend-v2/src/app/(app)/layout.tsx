@@ -1,7 +1,10 @@
+import { Navbar } from "@/components/layout/Navbar";
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-warm-bg text-text-main">
-      <main>{children}</main>
+    <div className="min-h-screen bg-warm-bg flex flex-col">
+      <Navbar />
+      <main className="flex-1 w-full">{children}</main>
     </div>
   );
 }
