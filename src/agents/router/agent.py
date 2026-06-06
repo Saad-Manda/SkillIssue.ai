@@ -83,7 +83,7 @@ def router_node(system_state: SystemState) -> SystemState:
 
 
     ## Same Topic
-    session_state = session_store.get(session_id)
+    session_state = session_store.get(session_id) or {}
     raw_history = session_state.get("chat_history", [])
     chat_history = parse_chat_history(raw_history)
     log_agent_event(

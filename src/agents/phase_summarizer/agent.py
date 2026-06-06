@@ -12,7 +12,7 @@ from .prompt import phase_change_summary_prompt, same_phase_summary_prompt
 
 def phase_summarizer_node(system_state: SystemState) -> SystemState:
     session_id = system_state.session_id
-    session_data = session_store.get(session_id)
+    session_data = session_store.get(session_id) or {}
     log_agent_start("phase_summarizer", session_id, system_state)
     log_agent_event(
         session_id, "phase_summarizer", "session_store_loaded", session_data=session_data

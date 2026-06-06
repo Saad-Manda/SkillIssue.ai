@@ -21,7 +21,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         f"topic_id={system_state.current_topic_id}"
     )
 
-    session_state = session_store.get(session_id)
+    session_state = session_store.get(session_id) or {}
     log_agent_event(
         session_id,
         "question_generator",

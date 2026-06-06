@@ -10,7 +10,7 @@ from ...models.states.turn import Turn
 def report_node(system_state: SystemState) -> SystemState:
 
     session_id = system_state.session_id
-    session_state = session_store.get(session_id)
+    session_state = session_store.get(session_id) or {}
     log_agent_start("report_generator", session_id, system_state)
     log_agent_event(
         session_id,

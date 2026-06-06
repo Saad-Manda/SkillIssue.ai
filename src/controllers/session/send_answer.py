@@ -29,7 +29,7 @@ def submit_answer(
     updated_state = state.model_copy(update={"current_response": answer})
     next_state = _run_graph(updated_state, resume=True)
 
-    session_data = session_store.get(session_id)
+    session_data = session_store.get(session_id) or {}
     turns = session_data.get("chat_history") or []
     chat: list[dict] = []
     for turn in turns:
