@@ -45,23 +45,22 @@ async def signup_endpoint(payload: SignupRequest, db: AsyncSession = Depends(get
 @router.post("/login", response_model=LoginResponse)
 async def login_endpoint(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     logger.info(
-        "login_endpoint called for email=%s username=%s",
-        payload.email,
-        payload.username,
+        "login_endpoint called for identifier=%s",
+        payload.username_or_email,
     )
     try:
         response = await login(db, payload)
         logger.info(
-            "login_endpoint succeeded for email=%s username=%s",
-            payload.email,
-            payload.username,
+            "login_endpoint succeeded for identifier=%s",
+            payload.username_or_email,
         )
         return response
+    except HTTPException as he:
+        raise he
     except Exception as e:
         logger.exception(
-            "login_endpoint failed for email=%s username=%s",
-            payload.email,
-            payload.username,
+            "login_endpoint failed for identifier=%s",
+            payload.username_or_email,
         )
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 

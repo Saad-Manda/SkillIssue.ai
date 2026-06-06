@@ -33,8 +33,7 @@ export default function LoginPage() {
     setApiError(null);
     try {
       const res = await authApi.login({
-        username: data.email,
-        email: data.email,
+        username_or_email: data.email,
         password: data.password,
       });
 

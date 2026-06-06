@@ -59,10 +59,10 @@ async def get_user_to_check(db: AsyncSession, email: str, username: str):
         return None
     return user_obj
 
-async def get_user_for_login(db: AsyncSession, email: str, username: str):
+async def get_user_for_login(db: AsyncSession, username_or_email: str):
     stmt = (
         select(UserSchema)
-        .where(and_(UserSchema.username == username, UserSchema.email == email))
+        .where(or_(UserSchema.username == username_or_email, UserSchema.email == username_or_email))
     )
     result = await db.execute(statement=stmt)
     user_obj = result.scalar_one_or_none()

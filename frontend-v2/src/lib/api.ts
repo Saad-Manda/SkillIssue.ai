@@ -49,7 +49,7 @@ export const authApi = {
       body: JSON.stringify(data),
     }),
 
-  login: (data: { username: string; email: string; password: string }) =>
+  login: (data: { username_or_email: string; password: string }) =>
     request<{ access_token: string; user_id: string }>("/auth/login", {
       method: "POST",
       body: JSON.stringify(data),

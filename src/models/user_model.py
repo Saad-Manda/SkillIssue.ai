@@ -36,8 +36,7 @@ class SignupResponse(BaseModel):
     signup_token: str
 
 class LoginRequest(BaseModel):
-    username: str
-    email: EmailStr
+    username_or_email: str
     password: str
 
 class LoginResponse(BaseModel):
