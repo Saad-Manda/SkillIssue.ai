@@ -288,7 +288,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
     system_state.current_question = new_question
     system_state.current_phase_name = current_phase_name
     system_state.current_topic_id = topic.topic_id
-    system_state.current_topic_question_count = 1
+    system_state.current_topic_question_count += 1
 
     print(
         f"[question_generator] done question_len={len(new_question or '')} (independent)"
