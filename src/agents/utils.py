@@ -28,3 +28,17 @@ def _route_after_metrics(state: SystemState) -> str:
     if state.should_generate_report:
         return "report_generator"
     return "router"
+
+
+def _route_after_question_generator(state: SystemState) -> str:
+    log_agent_event(
+        state.session_id,
+        "orchestrator",
+        "route_after_question_generator",
+        phase_transition_occurred=state.phase_transition_occurred,
+        completed_phase_name=state.completed_phase_name,
+        current_phase_name=state.current_phase_name,
+    )
+    if state.phase_transition_occurred:
+        return "phase_summarizer"
+    return "metric_calculator"

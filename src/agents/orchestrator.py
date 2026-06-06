@@ -13,7 +13,7 @@ from .phase_summarizer.agent import phase_summarizer_node
 from .router.agent import router_node
 from .metric_calculator.agent import metrics_node
 from .report_generator.agent import report_node
-from .utils import _route_after_metrics, _route_after_router
+from .utils import _route_after_metrics, _route_after_router, _route_after_question_generator
 
 load_dotenv()
 
@@ -43,7 +43,11 @@ def _build_graph():
         _route_after_router,
         {"question_generator": "question_generator", "report_generator": "report_generator"}
     )
-    graph.add_edge("question_generator", "phase_summarizer")
+    graph.add_conditional_edges(
+        "question_generator",
+        _route_after_question_generator,
+        {"phase_summarizer": "phase_summarizer", "metric_calculator": "metric_calculator"}
+    )
     graph.add_edge("phase_summarizer", "metric_calculator")
 
     graph.add_conditional_edges(
@@ -55,10 +59,10 @@ def _build_graph():
 
     app = graph.compile(
         checkpointer=checkpointer,
-        # Interrupt the graph after generating a question, i.e. before
-        # the `phase_summarizer` node, so that the UI can display the
+        # Interrupt the graph after generating a question, i.e. after
+        # the `question_generator` node, so that the UI can display the
         # question, collect the user's response, and then resume.
-        interrupt_before=["phase_summarizer"],
+        interrupt_after=["question_generator"],
     )
     print("[orchestrator] graph compiled")
     return app
