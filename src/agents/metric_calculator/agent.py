@@ -9,7 +9,7 @@ from ...models.states.metrics import Metrics
 
 def metrics_node(system_state: SystemState) -> SystemState:
     session_id = system_state.session_id
-    session_state = session_store.get(session_id)
+    session_state = session_store.get(session_id) or {}
     log_agent_start("metric_calculator", session_id, system_state)
     log_agent_event(
         session_id, "metric_calculator", "session_store_loaded", session_state=session_state

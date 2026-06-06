@@ -11,7 +11,7 @@ def _build_interview_payload(system_state: SystemState) -> dict:
     jd = system_state.jd
     report = system_state.final_report
 
-    session_state = session_store.get(session_id)
+    session_state = session_store.get(session_id) or {}
     chat_history = session_state.get("chat_history", [])
 
     payload = {
