@@ -31,13 +31,13 @@ def cosine_similarity(vec1: Counter, vec2: Counter) -> float:
 
 
 def extract_all_answers(chat_history: List[Turn]) -> str:
-    """Concatenate all assistant answers from history."""
-    return " ".join(t["content"] for t in chat_history if t.get("role") == "assistant")
+    """Concatenate all candidate answers from history."""
+    return " ".join(t["content"] for t in chat_history if t.get("role") == "user")
 
 
 def extract_all_questions(chat_history: List[Turn]) -> str:
-    """Concatenate all user questions from history."""
-    return " ".join(t["content"] for t in chat_history if t.get("role") == "user")
+    """Concatenate all interviewer questions from history."""
+    return " ".join(t["content"] for t in chat_history if t.get("role") == "assistant")
 
 
 ############################################
@@ -198,7 +198,7 @@ def confidence_score(
         prior_text = extract_all_answers(chat_history).lower()
         prior_hedge = sum(1 for h in HEDGE_WORDS if h in prior_text)
         # Normalise by number of prior turns
-        prior_turns = sum(1 for t in chat_history if t.get("role") == "assistant")
+        prior_turns = sum(1 for t in chat_history if t.get("role") == "user")
         if prior_turns:
             pattern_penalty = min(prior_hedge / (prior_turns * len(HEDGE_WORDS)), 0.3)
             penalty += pattern_penalty
@@ -254,8 +254,8 @@ def coverage_progress_contribution(
     if chat_history:
         # Simple proxy: average QAR*TDS across all prior turns + current
         prior_scores = []
-        questions = [t["content"] for t in chat_history if t.get("role") == "user"]
-        answers   = [t["content"] for t in chat_history if t.get("role") == "assistant"]
+        questions = [t["content"] for t in chat_history if t.get("role") == "assistant"]
+        answers   = [t["content"] for t in chat_history if t.get("role") == "user"]
         for q, a in zip(questions, answers):
             prior_qar = question_answer_relevance(q, a)
             prior_tds = topical_depth_score(q, a)
@@ -418,10 +418,10 @@ def calculate_turn_metrics(
 
 if __name__ == "__main__":
     history: List[Turn] = [
-        {"role": "user",      "content": "Tell me about your background."},
-        {"role": "assistant", "content": "I have 5 years of experience in backend development using Python and AWS."},
-        {"role": "user",      "content": "What databases have you worked with?"},
-        {"role": "assistant", "content": "I've worked with Postgres and MongoDB. We used Redis for caching to improve performance."},
+        {"role": "assistant", "content": "Tell me about your background."},
+        {"role": "user",      "content": "I have 5 years of experience in backend development using Python and AWS."},
+        {"role": "assistant", "content": "What databases have you worked with?"},
+        {"role": "user",      "content": "I've worked with Postgres and MongoDB. We used Redis for caching to improve performance."},
     ]
 
     current_question = "Can you describe a scalable architecture you designed?"

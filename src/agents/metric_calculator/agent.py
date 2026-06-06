@@ -23,8 +23,8 @@ def metrics_node(system_state: SystemState) -> SystemState:
     chat_history_raw = session_state.get("chat_history") or []
     chat_history_for_metrics = []
     for t in chat_history_raw:
-        chat_history_for_metrics.append({"role": "user", "content": t["question"]})
-        chat_history_for_metrics.append({"role": "assistant", "content": t["response"]})
+        chat_history_for_metrics.append({"role": "assistant", "content": t["question"]})
+        chat_history_for_metrics.append({"role": "user", "content": t["response"]})
     
     current_question = system_state.current_question
     current_response = system_state.current_response

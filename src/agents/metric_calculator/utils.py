@@ -16,6 +16,8 @@ from ...agents.llm import llm
 Turn    = Dict[str, str]
 Metrics = Dict[str, Any]
 
+_ROLE_LABEL = {"user": "CANDIDATE", "assistant": "INTERVIEWER"}
+
 _embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 _json_parser = JsonOutputParser()
 
@@ -65,20 +67,23 @@ def _parse_llm_json(raw: str, field: str = "score") -> float:
 def _prior_answers(history: Optional[List[Turn]]) -> str:
     if not history:
         return ""
-    return " ".join(t["content"] for t in history if t.get("role") == "assistant")
+    return " ".join(t["content"] for t in history if t.get("role") == "user")
 
 
 def _prior_questions(history: Optional[List[Turn]]) -> str:
     if not history:
         return ""
-    return " ".join(t["content"] for t in history if t.get("role") == "user")
+    return " ".join(t["content"] for t in history if t.get("role") == "assistant")
 
 
 def _history_text(history: Optional[List[Turn]], last_n: int = 999) -> str:
     if not history:
         return ""
     window = history[-last_n:]
-    return "\n".join(f"{t['role'].upper()}: {t['content']}" for t in window)
+    return "\n".join(
+        f"{_ROLE_LABEL.get(t['role'], t['role'].upper())}: {t['content']}"
+        for t in window
+    )
 
 
 _HEDGE_RE = re.compile(

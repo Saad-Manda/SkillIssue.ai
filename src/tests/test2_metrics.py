@@ -112,13 +112,13 @@ def _parse_llm_json(raw: str, field: str = "score") -> float:
 def _prior_answers(history: Optional[List[Turn]]) -> str:
     if not history:
         return ""
-    return " ".join(t["content"] for t in history if t.get("role") == "assistant")
+    return " ".join(t["content"] for t in history if t.get("role") == "user")
 
 
 def _prior_questions(history: Optional[List[Turn]]) -> str:
     if not history:
         return ""
-    return " ".join(t["content"] for t in history if t.get("role") == "user")
+    return " ".join(t["content"] for t in history if t.get("role") == "assistant")
 
 
 def _history_text(history: Optional[List[Turn]], last_n: int = 999) -> str:
@@ -462,9 +462,9 @@ def coverage_progress_contribution(
     prior_scores: List[float] = []
     q_buf: List[str] = []
     for t in chat_history:
-        if t["role"] == "user":
+        if t["role"] == "assistant":
             q_buf.append(t["content"])
-        elif t["role"] == "assistant" and q_buf:
+        elif t["role"] == "user" and q_buf:
             q_prev = q_buf.pop(0)
             pqar   = question_answer_relevance(q_prev, t["content"])
             pacs   = answer_completeness_score(q_prev, t["content"])
@@ -649,10 +649,10 @@ def calculate_turn_metrics(
 # ─────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     history: List[Turn] = [
-        {"role": "user",      "content": "Tell me about your background."},
-        {"role": "assistant", "content": "I have 5 years of backend experience with Python and AWS."},
-        {"role": "user",      "content": "What databases have you used?"},
-        {"role": "assistant", "content": "Worked with Postgres and MongoDB; used Redis for caching."},
+        {"role": "assistant", "content": "Tell me about your background."},
+        {"role": "user",      "content": "I have 5 years of backend experience with Python and AWS."},
+        {"role": "assistant", "content": "What databases have you used?"},
+        {"role": "user",      "content": "Worked with Postgres and MongoDB; used Redis for caching."},
     ]
 
     q = "Describe a scalable architecture you designed end to end."

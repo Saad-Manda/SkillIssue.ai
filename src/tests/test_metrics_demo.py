@@ -147,9 +147,9 @@ HISTORY_EXAMPLE: Tuple[str, str, str, List[Turn]] = (
     "releases were risky. I’d also introduce canary deployments—we had the infra "
     "but didn’t use it. So: feature flags, canaries, and better observability from day one.",
     [
-        {"role": "user", "content": "Tell me about a recent project that didn’t go well."},
-        {"role": "assistant", "content": "We had a big release that caused outages. The rollout was too broad and we didn’t have feature flags. I was responsible for the deployment strategy."},
-        {"role": "user", "content": "So what would you do differently in that project?"},
+        {"role": "assistant", "content": "Tell me about a recent project that didn’t go well."},
+        {"role": "user", "content": "We had a big release that caused outages. The rollout was too broad and we didn’t have feature flags. I was responsible for the deployment strategy."},
+        {"role": "assistant", "content": "So what would you do differently in that project?"},
     ],
 )
 

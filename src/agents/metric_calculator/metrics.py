@@ -290,10 +290,10 @@ def calculate_turn_metrics(
 # ─────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     history: List[Turn] = [
-        {"role": "user",      "content": "Tell me about your background."},
-        {"role": "assistant", "content": "I have 5 years of backend experience with Python and AWS."},
-        {"role": "user",      "content": "What databases have you used?"},
-        {"role": "assistant", "content": "Worked with Postgres and MongoDB; used Redis for caching."},
+        {"role": "assistant", "content": "Tell me about your background."},
+        {"role": "user",      "content": "I have 5 years of backend experience with Python and AWS."},
+        {"role": "assistant", "content": "What databases have you used?"},
+        {"role": "user",      "content": "Worked with Postgres and MongoDB; used Redis for caching."},
     ]
 
     q = "Describe a scalable architecture you designed end to end."
