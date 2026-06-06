@@ -48,7 +48,7 @@ def _build_initial_state(
         current_topic_id="",
         current_topic_question_count=0,
         current_phase_name="introduction",
-        current_turn_status="START",
+        router_intent="START",
         min_topics=min_topics,
         max_topics=max_topics,
         final_report="",

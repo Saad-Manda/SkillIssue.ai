@@ -7,7 +7,7 @@ def _route_after_router(state: SystemState) -> str:
         "orchestrator",
         "route_after_router",
         should_generate_report=state.should_generate_report,
-        current_turn_status=state.current_turn_status,
+        router_intent=state.router_intent,
         current_topic_id=state.current_topic_id,
         current_phase_name=state.current_phase_name,
     )
@@ -21,7 +21,7 @@ def _route_after_metrics(state: SystemState) -> str:
         "orchestrator",
         "route_after_metrics",
         should_generate_report=state.should_generate_report,
-        current_turn_status=state.current_turn_status,
+        router_intent=state.router_intent,
         current_topic_id=state.current_topic_id,
         current_phase_name=state.current_phase_name,
     )
