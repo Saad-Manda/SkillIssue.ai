@@ -26,7 +26,7 @@ from typing import Dict, List, Optional, Any
 
 import numpy as np
 from langchain_core.messages import SystemMessage, HumanMessage
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from sentence_transformers import SentenceTransformer
 
 from ..agents.llm import llm
 
@@ -38,17 +38,17 @@ Metrics = Dict[str, Any]
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# EMBEDDING BACKEND  —  Google gemini-embedding-001
+# EMBEDDING BACKEND  —  SentenceTransformer
 # ═════════════════════════════════════════════════════════════════════════════
 
-_embedder = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+_embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 
 def embed(text: str) -> np.ndarray:
     """
-    Google gemini-embedding-001; returns 1-D float32 np.ndarray, L2-normalised.
+    SentenceTransformer; returns 1-D float32 np.ndarray, L2-normalised.
     """
-    v = np.array(_embedder.embed_query(text), dtype=np.float32)
+    v = np.array(_embedder.encode(text), dtype=np.float32)
     norm = np.linalg.norm(v)
     if norm > 0:
         v /= norm

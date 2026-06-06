@@ -1,4 +1,6 @@
-from src.agents.question_generator.prompt import independent_question_prompt, dependent_question_prompt
+from unittest.mock import MagicMock, patch
+
+from src.agents.question_generator.prompt import topic_transition_prompt, dependent_question_prompt
 from src.models.jd_model import JobDescription
 from src.models.plan_model import Phase, Topic
 from src.models.states.phase_summary import PhaseSummary
@@ -7,8 +9,7 @@ from src.models.states.metrics import Metrics
 from src.models.util_model import Emp_Type, Loc_Type
 
 
-def test_independent_question_prompt_contains_updated_rules():
-    """Regression: default (is_topic_transition=False) must still produce INDEPENDENT (STRICT) mode."""
+def test_topic_transition_prompt_contains_updated_rules():
     phase_summary = PhaseSummary(
         phase_summary_id="ps_1",
         phase_name="Core Technical",
@@ -50,28 +51,23 @@ def test_independent_question_prompt_contains_updated_rules():
         topic_id="t_1"
     )
 
-    messages = independent_question_prompt(
+    messages = topic_transition_prompt(
         previous_phase_summaries=[phase_summary],
         user_summary="Enthusiastic developer",
         previous_k_turns=[turn],
         jd=jd,
         phase=phase,
         topic=topic,
-        router_reason="INDEPENDENT",
-        is_topic_transition=False,  # explicit default — INDEPENDENT (STRICT) mode
+        router_intent="advance_topic",
     )
 
     assert len(messages) == 2
     system_message = messages[0].content
 
-    # Assert INDEPENDENT (STRICT) instructions are in the prompt
-    assert "The question itself must NOT require the candidate's last answer" in system_message
-    assert "You MAY (and should) open with a brief 1-2 sentence acknowledgment" in system_message
+    assert "BRANCH MODE: TOPIC TRANSITION" in system_message
     assert "Your response MUST have exactly two parts, in this order:" in system_message
-    assert "1. BRIDGE (1\u20132 sentences): Naturally acknowledge" in system_message
+    assert "1. BRIDGE (1–2 sentences): Naturally acknowledge" in system_message
     assert "2. QUESTION (1 sentence): The next interview question" in system_message
-    # Must NOT contain the transition-mode text
-    assert "BRANCH MODE: TOPIC TRANSITION" not in system_message
 
 
 def test_dependent_question_prompt_contains_updated_rules():
@@ -122,17 +118,21 @@ def test_dependent_question_prompt_contains_updated_rules():
         user_summary="Enthusiastic developer",
         jd=jd,
         phase=phase,
-        router_reason="PROBE"
+        topic=topic,
+        router_intent="dependent_followup",
+        router_focus="Postgres sharding"
     )
 
     assert len(messages) == 2
     system_message = messages[0].content
 
     assert "CONVERSATION FLOW (MANDATORY):" in system_message
-    assert "Before asking your question, open with 1\u20132 sentences that acknowledge something specific" in system_message
+    assert "Before asking your question, open with 1–2 sentences that acknowledge something specific" in system_message
     assert "Your response MUST have exactly two parts, in this order:" in system_message
-    assert "1. BRIDGE (1\u20132 sentences): Acknowledge something specific from the candidate's prior answer" in system_message
-    assert "2. QUESTION (1 sentence): The follow-up question" in system_message
+    assert "1. BRIDGE (1–2 sentences): Acknowledge something specific from the candidate's prior answer" in system_message
+    assert "2. QUESTION (1 sentence): The question." in system_message
+    assert "BRANCH MODE: DEPENDENT FOLLOW-UP" in system_message
+    assert "Postgres sharding" in system_message
 
 
 # ---------------------------------------------------------------------------
@@ -191,67 +191,12 @@ def _make_fixtures():
     return phase_summary, new_topic, phase, jd, last_turn
 
 
-# ---------------------------------------------------------------------------
-# New tests: topic transition mode
-# ---------------------------------------------------------------------------
-
-def test_independent_prompt_topic_transition_mode():
-    """is_topic_transition=True must produce TOPIC TRANSITION mode with the new topic name."""
-    phase_summary, new_topic, phase, jd, last_turn = _make_fixtures()
-
-    messages = independent_question_prompt(
-        previous_phase_summaries=[phase_summary],
-        user_summary="Experienced backend engineer",
-        previous_k_turns=[last_turn],
-        jd=jd,
-        phase=phase,
-        topic=new_topic,
-        router_reason="TOPIC CHANGED",
-        is_topic_transition=True,
-    )
-
-    assert len(messages) == 2
-    system_message = messages[0].content
-
-    # Transition mode must be active
-    assert "BRANCH MODE: TOPIC TRANSITION" in system_message
-    # New topic name must be injected into the instruction
-    assert "System Design" in system_message
-    # Bridge-source hint must be present (the unique line in the transition block)
-    assert "use it as your bridge source" in system_message
-    # Must NOT contain the old INDEPENDENT (STRICT) mode text
-    assert "BRANCH MODE: INDEPENDENT (STRICT)" not in system_message
-    # Output contract (two-part format) must still be enforced by constraints
-    assert "Your response MUST have exactly two parts, in this order:" in system_message
-
-
-def test_independent_prompt_default_mode_unchanged():
-    """Regression: omitting is_topic_transition (or False) must not activate transition mode."""
-    phase_summary, new_topic, phase, jd, last_turn = _make_fixtures()
-
-    messages = independent_question_prompt(
-        previous_phase_summaries=[phase_summary],
-        user_summary="Experienced backend engineer",
-        previous_k_turns=[last_turn],
-        jd=jd,
-        phase=phase,
-        topic=new_topic,
-        router_reason="INDEPENDENT",
-        # is_topic_transition defaults to False
-    )
-
-    system_message = messages[0].content
-    assert "BRANCH MODE: INDEPENDENT (STRICT)" in system_message
-    assert "BRANCH MODE: TOPIC TRANSITION" not in system_message
-
-
 def test_question_generator_topic_changed_passes_only_last_turn():
     """
     Integration guard: when TOPIC CHANGED fires, question_generator_node must
-    call independent_question_prompt with exactly one turn (the last one) and
-    is_topic_transition=True. The prompt must NOT receive an empty context.
+    call topic_transition_prompt with exactly one turn (the last one).
+    The prompt must NOT receive an empty context.
     """
-    from unittest.mock import MagicMock, patch
     from src.agents.question_generator.agent import question_generator_node
     from src.models.plan_model import Plan, Phase, Topic
     from src.models.states.states import SystemState
@@ -296,7 +241,7 @@ def test_question_generator_topic_changed_passes_only_last_turn():
         current_topic_id="topic-1-1",
         current_topic_question_count=2,  # k == max_question_count -> TOPIC CHANGED
         current_phase_name="Phase 1",
-        current_turn_status="TOPIC CHANGED",
+        router_intent="advance_topic",
         min_topics=1,
         max_topics=5,
         final_report="",
@@ -304,16 +249,12 @@ def test_question_generator_topic_changed_passes_only_last_turn():
     )
 
     with patch("src.agents.question_generator.agent.session_store") as mock_store, \
-         patch("src.agents.question_generator.agent.independent_question_prompt", side_effect=capture_prompt), \
+         patch("src.agents.question_generator.agent.topic_transition_prompt", side_effect=capture_prompt), \
          patch("src.agents.question_generator.agent.llm") as mock_llm:
         mock_store.get.return_value = mock_session_state
         mock_llm.invoke.return_value = MagicMock(content="Mocked transition question")
 
         question_generator_node(system_state)
-
-    # The prompt must have been called with is_topic_transition=True
-    assert captured_kwargs.get("is_topic_transition") is True, \
-        "is_topic_transition must be True for TOPIC CHANGED branch"
 
     # Exactly one turn must be passed (option a: last turn only)
     turns_passed = captured_kwargs.get("previous_k_turns", [])
