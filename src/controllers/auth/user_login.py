@@ -11,23 +11,20 @@ logger = logging.getLogger(__name__)
 
 async def login(db: AsyncSession, payload: LoginRequest):
     logger.info(
-        "login controller called for email=%s username=%s",
-        payload.email,
-        payload.username,
+        "login controller called for identifier=%s",
+        payload.username_or_email,
     )
-    user = await get_user_for_login(db, payload.email, payload.username)
+    user = await get_user_for_login(db, payload.username_or_email)
     if not user:
         logger.warning(
-            "login controller invalid credentials: user not found for email=%s username=%s",
-            payload.email,
-            payload.username,
+            "login controller invalid credentials: user not found for identifier=%s",
+            payload.username_or_email,
         )
         raise HTTPException(status_code=401, detail="Invalid credentials")
     if not verify_password(payload.password, user.hashed_password):
         logger.warning(
-            "login controller invalid credentials: password mismatch for email=%s username=%s",
-            payload.email,
-            payload.username,
+            "login controller invalid credentials: password mismatch for identifier=%s",
+            payload.username_or_email,
         )
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
