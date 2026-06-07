@@ -9,6 +9,7 @@ def _route_after_router(state: SystemState) -> str:
         should_generate_report=state.should_generate_report,
         router_intent=state.router_intent,
         current_topic_id=state.current_topic_id,
+        current_topic_name=state.current_topic_name,
         current_phase_name=state.current_phase_name,
     )
     if state.should_generate_report:
@@ -23,6 +24,7 @@ def _route_after_metrics(state: SystemState) -> str:
         should_generate_report=state.should_generate_report,
         router_intent=state.router_intent,
         current_topic_id=state.current_topic_id,
+        current_topic_name=state.current_topic_name,
         current_phase_name=state.current_phase_name,
     )
     if state.should_generate_report:

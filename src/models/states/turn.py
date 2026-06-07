@@ -10,3 +10,4 @@ class Turn(BaseModel):
     metrics: Metrics
     phase_name: str
     topic_id: str
+    topic_name: str

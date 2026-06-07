@@ -47,6 +47,7 @@ def system_state_initialize(
     system_state.phase_transition_occurred = False
     system_state.completed_phase_name = None
     system_state.current_topic_id = None
+    system_state.current_topic_name = ""
     system_state.final_report = None
     system_state.turns_in_current_phase = []
 

@@ -67,6 +67,12 @@ class TestTerminationLogic(unittest.TestCase):
         self.llm_patcher.stop()
 
     def create_mock_state(self, current_topic_id, current_phase_name, current_topic_question_count, router_intent="NORMAL"):
+        topic_name = ""
+        for phase in self.plan.phase:
+            for t in phase.topics:
+                if t.topic_id == current_topic_id:
+                    topic_name = t.topic
+                    break
         return SystemState.model_construct(
             session_id="test-session",
             user=MagicMock(),
@@ -77,6 +83,7 @@ class TestTerminationLogic(unittest.TestCase):
             current_response="some response",
             plan=self.plan,
             current_topic_id=current_topic_id,
+            current_topic_name=topic_name,
             current_topic_question_count=current_topic_question_count,
             current_phase_name=current_phase_name,
             router_intent=router_intent,
@@ -141,6 +148,7 @@ class TestTerminationLogic(unittest.TestCase):
             response="A",
             phase_name="Phase 2",
             topic_id="topic-2-2",
+            topic_name="Topic 2.2",
             metrics=MagicMock()
         )
         mock_session_state = {

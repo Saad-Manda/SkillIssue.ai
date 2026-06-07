@@ -17,6 +17,7 @@ def router_node(system_state: SystemState) -> SystemState:
     print(
         f"[router] start session_id={session_id} "
         f"topic_id={system_state.current_topic_id} "
+        f"topic_name={system_state.current_topic_name} "
         f"k={system_state.current_topic_question_count}"
     )
 
@@ -36,6 +37,7 @@ def router_node(system_state: SystemState) -> SystemState:
         matching_topics=matching_topics,
     )
     current_topic = matching_topics[0] if matching_topics else None
+    current_topic_name = system_state.current_topic_name or (current_topic.topic if current_topic else "")
     if current_topic is None:
         print("[router] current_topic not found -> independent, TOPIC CHANGED")
         system_state.is_curr_question_independent = True
@@ -77,6 +79,7 @@ def router_node(system_state: SystemState) -> SystemState:
     messages = router_prompt(
         chat_history=turns_in_current_phase,
         current_topic_id=current_topic_id,
+        current_topic_name=current_topic_name,
         current_phase_name=system_state.current_phase_name,
         k=k,
         max_question_count=max_question_count,

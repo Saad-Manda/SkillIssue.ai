@@ -48,7 +48,8 @@ def test_topic_transition_prompt_contains_updated_rules():
         response="I have used Postgres and Redis.",
         metrics=metrics,
         phase_name="Core Technical",
-        topic_id="t_1"
+        topic_id="t_1",
+        topic_name="Databases"
     )
 
     messages = topic_transition_prompt(
@@ -109,7 +110,8 @@ def test_dependent_question_prompt_contains_updated_rules():
         response="I have used Postgres and Redis.",
         metrics=metrics,
         phase_name="Core Technical",
-        topic_id="t_1"
+        topic_id="t_1",
+        topic_name="Databases"
     )
 
     messages = dependent_question_prompt(
@@ -186,7 +188,8 @@ def _make_fixtures():
         response="I prefer SQL for relational data, NoSQL for unstructured or high-write workloads.",
         metrics=metrics,
         phase_name="Core Technical",
-        topic_id="t_prev"
+        topic_id="t_prev",
+        topic_name="Databases"
     )
     return phase_summary, new_topic, phase, jd, last_turn
 
@@ -210,7 +213,8 @@ def test_question_generator_topic_changed_passes_only_last_turn():
         response="I use consistent hashing for sharding.",
         metrics=metrics,
         phase_name="Phase 1",
-        topic_id="topic-1-1"
+        topic_id="topic-1-1",
+        topic_name="Databases"
     )
 
     topic_1_1 = Topic(topic_id="topic-1-1", topic="Databases", source="test", weight=1.0, max_question_count=2)
@@ -239,6 +243,7 @@ def test_question_generator_topic_changed_passes_only_last_turn():
         current_response="some response",
         plan=plan,
         current_topic_id="topic-1-1",
+        current_topic_name="Databases",
         current_topic_question_count=2,  # k == max_question_count -> TOPIC CHANGED
         current_phase_name="Phase 1",
         router_intent="advance_topic",

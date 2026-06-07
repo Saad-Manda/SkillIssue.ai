@@ -26,6 +26,7 @@ class SystemState(BaseModel):
     current_response: str
     plan: Plan
     current_topic_id: str
+    current_topic_name: str = ""
     current_topic_question_count: int
     current_phase_name: str
     router_intent: Optional[str] = None

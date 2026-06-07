@@ -48,7 +48,7 @@ async def start_session_endpoint(
         "current_question": state.current_question,
         "current_phase_name": state.current_phase_name,
         "current_topic_id": state.current_topic_id,
-        "current_topic_name": get_topic_name(state.plan, state.current_topic_id),
+        "current_topic_name": state.current_topic_name or get_topic_name(state.plan, state.current_topic_id),
         "chat": chat,
     }
 
@@ -70,7 +70,7 @@ async def submit_answer_endpoint(session_id: str, payload: SubmitAnswerRequest):
         "current_question": state.current_question,
         "current_phase_name": state.current_phase_name,
         "current_topic_id": state.current_topic_id,
-        "current_topic_name": get_topic_name(state.plan, state.current_topic_id),
+        "current_topic_name": state.current_topic_name or get_topic_name(state.plan, state.current_topic_id),
         "turn_count": turn_count,
         "store_count": store_count,
         "chat": chat,

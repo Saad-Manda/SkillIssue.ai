@@ -141,7 +141,7 @@ const InterviewDetails = () => {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px', color: 'var(--text-secondary)' }}>
                   <span>Phase: {turn.phase_name}</span>
-                  <span>Topic ID: {turn.topic_id}</span>
+                  <span>Topic: {turn.topic_name || turn.topic_id}</span>
                 </div>
                 
                 <div style={{ marginBottom: '16px' }}>

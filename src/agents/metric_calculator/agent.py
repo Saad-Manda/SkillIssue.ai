@@ -63,6 +63,7 @@ def metrics_node(system_state: SystemState) -> SystemState:
         metrics=Metrics(**results),
         phase_name=current_phase,
         topic_id=current_topic_id,
+        topic_name=system_state.current_topic_name,
     )
 
     chat_history_raw.append(current_turn.model_dump())
