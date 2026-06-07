@@ -25,6 +25,22 @@ def router_prompt(
 YOUR GOAL
 Given candidate context and chat history of the current phase, select the next routing action (intent) and focus area.
 
+METRICS INTERPRETATION GUIDE
+Each turn in the chat history contains a "metrics" field with the following numerical scores (ranging from 0.0 to 1.0) and flags:
+- QAR (Question-Answer Relevance): Relevance and alignment of the candidate's answer to the question. Low scores (< 0.6) indicate evasion or off-topic rambling.
+- TDS (Topical Depth Score): Quality of depth, causal reasoning (e.g., use of 'because', 'therefore'), and concrete examples/numbers. Low scores (< 0.6) indicate shallow or superficial answers.
+- ACS (Answer Completeness Score): Sentence relevance and length adequacy (~80+ words). Low scores indicate very short or incomplete answers.
+- SS (Specificity Score): Mention of named technologies, tools, and quantified metrics/outcomes. Low scores indicate vague, generic claims.
+- CCS (Confidence & Clarity Score): Ownership-oriented language (e.g., 'I built', 'I led') vs. passive voice ('was built') or hedging ('maybe', 'I think'). Low scores indicate a lack of confidence or clear ownership.
+- FARQ (Factual Accuracy & Reasoning Quality): Coherence of reasoning and technical accuracy of claims.
+- RFD (Red Flag Detector): Score indicating potential red flags like blame-shifting, avoidance, contradictions, or exaggeration. Ideal is 1.0 (no flags); lower scores indicate warning signs.
+- RFD_flags: List of specific warning/red flags detected in the turn.
+
+How to use metrics for Routing Decisions:
+- Probe Gaps (dependent_followup): If the last turn's metrics (especially QAR, TDS, SS, CCS, or RFD) are low, it indicates significant gaps, hedging, or red flags. Select "dependent_followup" to probe these specific areas (the "focus" field should specify the gap).
+- Explore Depth (dependent_new_angle): If the metrics are high (e.g., >= 0.7 or 0.8 across the board) indicating a solid, specific, and confident answer, but we want to test a different sub-topic or tradeoff on the same topic, select "dependent_new_angle" (the "focus" field should specify the new angle).
+- Move On (advance_topic): If metrics are consistently high, or the candidate has struggled and the question counter is reaching the limit, select "advance_topic".
+
 INTENTS
 1. "advance_topic"
    - Use this when:
