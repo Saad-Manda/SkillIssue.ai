@@ -22,20 +22,36 @@ async def create_user_profile(db: AsyncSession, user_profile: UserModel, signup_
         "create_user_profile controller called for username=%s", user_profile.username
     )
     cred = verify_signup_token(signup_token)
+    email = cred.get("email")
 
-    user = UserSchema(
-        user_id=str(uuid4()),
-        name=user_profile.name,
-        username=cred.get("sub"),
-        email=cred.get("email"),
-        hashed_password=cred.get("hashed_password"),
-        is_active=user_profile.is_active,
-        mobile=user_profile.mobile,
-        github_url=user_profile.github_url,
-        linkedin_url=user_profile.linkedin_url,
-        skills=user_profile.skills,
-    )
-    db.add(user)
+    # Check if user already exists (e.g. from signup persistence)
+    stmt = select(UserSchema).where(UserSchema.email == email)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        user = UserSchema(
+            user_id=str(uuid4()),
+            name=user_profile.name,
+            username=cred.get("sub"),
+            email=email,
+            hashed_password=cred.get("hashed_password"),
+            is_active=user_profile.is_active,
+            mobile=user_profile.mobile,
+            github_url=user_profile.github_url,
+            linkedin_url=user_profile.linkedin_url,
+            skills=user_profile.skills,
+        )
+        db.add(user)
+    else:
+        # Update existing user's profile details
+        user.name = user_profile.name
+        user.mobile = user_profile.mobile
+        user.github_url = user_profile.github_url
+        user.linkedin_url = user_profile.linkedin_url
+        user.skills = user_profile.skills
+        user.is_active = user_profile.is_active
+
 
     for experience in user_profile.experiences:
         exp = ExperienceSchema(

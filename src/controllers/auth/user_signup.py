@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...models.user_model import SignupRequest, SignupResponse
+from ...schemas.user import User as UserSchema
 from .utils import (
     create_access_token,
     create_signup_token,
@@ -39,6 +40,20 @@ async def signup(db: AsyncSession, payload: SignupRequest):
             raise HTTPException(status_code=409, detail="Username already in use")
 
     hashed_password = await hash_password(payload.password)
+
+    # Persist the user immediately on signup with default name and skills
+    db_user = UserSchema(
+        user_id=str(uuid4()),
+        username=payload.username,
+        email=payload.email,
+        hashed_password=hashed_password,
+        name=payload.username,
+        skills=[],
+        is_active=True,
+    )
+    db.add(db_user)
+    await db.commit()
+    await db.refresh(db_user)
 
     access_data = {"email": payload.email, "sub": payload.username, "role": ["user"]}
     access_token = await create_access_token(access_data)
