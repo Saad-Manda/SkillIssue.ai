@@ -163,12 +163,13 @@ def question_generator_node(system_state: SystemState) -> SystemState:
 
     # 2. DEPENDENT (Follow-up / New Angle) Branch
     else:
-        current_phase_name = chat_history_full[-1].phase_name
+        last_turn = system_state.turns_in_current_phase[-1]
+        current_phase_name = last_turn.phase_name
         current_phase = get_current_phase(plan, current_phase_name)
         if current_phase is None:
             raise ValueError(f"Could not find phase in plan: {current_phase_name}")
         
-        current_topic_id = chat_history_full[-1].topic_id
+        current_topic_id = last_turn.topic_id
         current_topic = get_current_topic(plan, current_phase_name, current_topic_id)
         if current_topic is None:
             raise ValueError(f"Could not find topic in plan: phase={current_phase_name} topic_id={current_topic_id}")
@@ -180,9 +181,9 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             summary="Active evaluation phase. No completed summary available yet."
         )
 
-        # Get turns of current topic as context
+        # Get turns of current topic as context in O(1) from turns of the current phase
         current_topic_turns = [
-            t for t in chat_history_full if t.topic_id == current_topic_id
+            t for t in (system_state.turns_in_current_phase or []) if t.topic_id == current_topic_id
         ]
 
         router_focus = system_state.router_focus
