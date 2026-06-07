@@ -31,7 +31,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="relative z-10 space-y-8">
           <blockquote className="space-y-4">
             <p className="text-2xl font-light leading-relaxed text-stone-100 font-serif italic">
-              "Context-aware AI interviews that prepare you for the real conversation — not a generic script."
+              &ldquo;Context-aware AI interviews that prepare you for the real conversation — not a generic script.&rdquo;
             </p>
           </blockquote>
 
