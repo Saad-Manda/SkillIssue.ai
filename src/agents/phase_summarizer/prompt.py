@@ -1,114 +1,45 @@
+import json
+from typing import List
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from ...models.states.phase_summary import PhaseSummary
+from ...models.states.turn import Turn
 
 
-def same_phase_summary_prompt(
-    current_phase_summary: str,
-    current_question: str,
-    current_response: str,
+def phase_summary_prompt(
+    phase_name: str,
+    completed_phase_turns: List[Turn],
+    prior_phase_summaries: List[PhaseSummary],
 ) -> list:
-    """Build messages for incremental update of an existing phase summary."""
+    """Build messages for summarizing a completed phase using all its turns and prior phase summaries."""
+    completed_phase_turns_json = json.dumps([t.model_dump() for t in completed_phase_turns], indent=2, ensure_ascii=False)
+    prior_summaries_json = json.dumps([s.model_dump() if hasattr(s, "model_dump") else s for s in prior_phase_summaries], indent=2, ensure_ascii=False)
 
-    system_content = """
-You are a precise interview phase summarization assistant.
+    system_content = """You are an expert interview phase summarization assistant.
 
-ROLE:
-Your job is to update an existing phase summary by incorporating the latest question-response turn.
-The summary will be used to:
-- Generate follow-up questions in the same phase
-- Inform the final interview report
-- Track what the candidate has demonstrated so far
+YOUR ROLE
+Generate a comprehensive, high-quality evaluation summary of the interview phase that has just completed. This summary will be used by the question generator in subsequent phases to build upon context, and will also help inform the final readiness report.
 
-WHAT TO CAPTURE IN SUMMARIES:
-- Skills, competencies, or knowledge demonstrated
-- Decisions, trade-offs, reasoning, or problem-solving approach
-- Concrete examples, metrics, or outcomes mentioned
-- Gaps, uncertainties, or areas needing follow-up
-- Behavioral or leadership signals (if relevant)
+WHAT TO CAPTURE:
+- Skills, competencies, and depth of technical/conceptual knowledge demonstrated on topics covered in this phase.
+- Design decisions, trade-offs, reasoning, or problem-solving approaches explained by the candidate.
+- Concrete examples, metrics, achievements, or project details mentioned.
+- Specific gaps, uncertainties, evasions, or flags that warrant attention.
+- Tone, communication style, or behavioral patterns (especially if this was a behavioral or experience phase).
 
-UPDATE RULES:
-- Preserve all important points already in the current phase summary.
-- Add only new, relevant information from the latest turn.
-- Merge overlapping points; avoid redundancy.
-- Keep it concise, factual, and interview-focused.
-- Do not invent details.
-- Do not include labels, bullets, JSON, or meta commentary.
-- Output only the updated phase summary text.
+OUTPUT FORMAT:
+Output only the raw summary text. Do NOT include markdown styling (like headings, bullet points), labels, JSON, or meta-commentary. Keep it clean, professional, and factual.
 """
 
-    human_content = f"""
-CURRENT PHASE SUMMARY (to update):
-{current_phase_summary}
+    human_content = f"""Completed Phase Name: {phase_name}
 
-LATEST QUESTION:
-{current_question}
+Prior Phase Summaries (for context of the candidate's journey so far):
+{prior_summaries_json}
 
-LATEST RESPONSE:
-{current_response}
+All turns in the completed phase (newest last):
+{completed_phase_turns_json}
 
-TASK: Create an updated phase summary that merges the current summary with the new information from the latest turn.
-Return only the updated summary text.
-"""
-
-    return [
-        SystemMessage(content=system_content),
-        HumanMessage(content=human_content),
-    ]
-
-
-def phase_change_summary_prompt(
-    previous_phase_summary: str,
-    current_phase: str,
-    current_question: str,
-    current_response: str,
-) -> list:
-    """Build messages for generating the first summary when transitioning to a new phase."""
-
-    system_content = """
-You are a precise interview phase summarization assistant.
-
-ROLE:
-Your job is to generate the first summary for a new interview phase when the phase has changed.
-The previous phase is complete; this summary starts fresh for the current phase.
-The summary will be used to:
-- Generate follow-up questions in the new phase
-- Inform the final interview report
-- Track what the candidate has demonstrated in this phase
-
-WHAT TO CAPTURE IN SUMMARIES:
-- Skills, competencies, or knowledge demonstrated
-- Decisions, trade-offs, reasoning, or problem-solving approach
-- Concrete examples, metrics, or outcomes mentioned
-- Gaps, uncertainties, or areas needing follow-up
-- Behavioral or leadership signals (if relevant)
-
-PHASE TRANSITION RULES:
-- Focus only on the current phase turn content.
-- Do NOT carry detailed content from the previous phase summary into this summary.
-- You may reference the previous phase briefly for context (e.g., "Following introduction...") but do not duplicate its details.
-- This is the first summary for the new phase; keep it focused on the current question-response.
-- Keep it concise, factual, and interview-focused.
-- Do not invent details.
-- Do not include labels, bullets, JSON, or meta commentary.
-- Output only the new phase summary text.
-"""
-
-    human_content = f"""
-PREVIOUS PHASE SUMMARY (for context only; do not copy its content):
-{previous_phase_summary}
-
-CURRENT PHASE:
-{current_phase}
-
-LATEST QUESTION:
-{current_question}
-
-LATEST RESPONSE:
-{current_response}
-
-TASK: Create a new summary for the current phase based on the latest question and response.
-Return only the new phase summary text.
+Please generate the summary of the completed phase now. Return only the raw summary text.
 """
 
     return [

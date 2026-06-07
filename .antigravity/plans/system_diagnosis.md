@@ -169,6 +169,17 @@ The plan model (`plan_model.py`) has no concept of "topic description" or "what 
 2. Dependent (follow-up on last answer)
 3. TOPIC CHANGED (advance to next topic) — but this is NOT decided by the LLM!
 
+**Comments**
+- We will have only 3 scenarios, as we will generate plan such that each topic is independent of each other
+- *Independent Question* Topic transition only
+- *Dependent Question*
+  1. Scenario One is the one you told different angle or different perspective, bcoz context used is same but the angle of asking question is different so. indirectly its a dependent question
+  2. Other is a proper dependent question u know about it
+
+> I want to hear your thoughts about it, which one draws a clear boundary and simple and efficeint logic
+
+- lets remove the hard constraint of max_question count, we will have a topic wise counter, but we wont have hard if/else but we will let router only do that what to do in future, should we advance topic, independent question or question on same topic different angle
+
 #### 🚨 CRITICAL ARCHITECTURE DEFECT: The router can only say "same topic"
 
 ```python
@@ -307,6 +318,9 @@ The question_generator for DEPENDENT questions uses `current_phase_summary` (las
 
 It does NOT need to run if the next question is going to be on the exact same topic. Running an LLM call to update a summary after every single turn is expensive and often produces nearly identical output to the previous summary.
 
+**Comments**
+- Listen to my idea, here we will generate phase summary only after phase transition and for any topics which are inside a phase we will provide all turns of that phase + running summary of phases before it, this would be cleaner and phase summarizer will be called only after phase transisions
+
 #### ❌ Problem 2: Summary is a free-text blob with no structure
 
 ```python
@@ -428,6 +442,8 @@ for msg in raw_history:
 
 For a 20-turn interview, this could be 10,000+ tokens of transcript. The report generator receives the entire context in a single LLM call. This is both slow (long context) and expensive (large token count).
 
+**Comments**
+- This is mandatory na, if we strip any of these, we will face inconsistency errors
 #### ❌ Problem 3: Report prompt generates 6 sections but tells the LLM to be selective about transcript analysis
 
 ```

@@ -26,10 +26,15 @@ class SystemState(BaseModel):
     current_response: str
     plan: Plan
     current_topic_id: str
+    current_topic_name: str = ""
     current_topic_question_count: int
     current_phase_name: str
-    current_turn_status: str
+    router_intent: Optional[str] = None
+    router_focus: str = ""
+    phase_transition_occurred: bool = False
+    completed_phase_name: Optional[str] = None
     min_topics: int
     max_topics: int
     final_report: str
     should_generate_report: bool = False
+    turns_in_current_phase: List[Turn] = Field(default_factory=list)

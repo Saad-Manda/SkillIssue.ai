@@ -2,10 +2,11 @@ from langchain_core.messages import AIMessage
 
 from ...models.states.redis_session import parse_chat_history, session_store
 from ...models.states.states import SystemState
+from ...models.states.phase_summary import PhaseSummary
 from ..llm import llm
 from ..session_logging import log_agent_error, log_agent_event, log_agent_start
 from .get_topic import get_current_phase, get_current_topic, get_next_topic
-from .prompt import dependent_question_prompt, independent_question_prompt
+from .prompt import dependent_question_prompt, topic_transition_prompt
 
 
 def question_generator_node(system_state: SystemState) -> SystemState:
@@ -14,8 +15,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
 
     print(
         f"[question_generator] start session_id={session_id} "
-        f"reason={system_state.current_turn_status} "
-        f"is_indep={system_state.is_curr_question_independent} "
+        f"intent={system_state.router_intent} "
         f"k={system_state.current_topic_question_count} "
         f"phase={system_state.current_phase_name} "
         f"topic_id={system_state.current_topic_id}"
@@ -33,18 +33,14 @@ def question_generator_node(system_state: SystemState) -> SystemState:
     jd = system_state.jd
     k = system_state.current_topic_question_count
     plan = system_state.plan
-    is_indep = system_state.is_curr_question_independent
-    reason = system_state.current_turn_status
+    router_intent = system_state.router_intent
+    router_focus = system_state.router_focus
 
     phase_summary = session_state.get("phase_summary", [])
     raw_history = session_state.get("chat_history") or []
     chat_history_full = parse_chat_history(raw_history)
-    # Pre-topic background: turns *before* the current-topic block.
-    # Used only as background context for the INDEPENDENT branch prompt,
-    # so the LLM does not accidentally anchor its question to current-topic turns.
-    chat_history_pre_topic = chat_history_full[:-k] if k > 0 else chat_history_full
-    # last_turn: used as bridge context for TOPIC CHANGED transition.
     last_turn = chat_history_full[-1] if chat_history_full else None
+    
     log_agent_event(
         session_id,
         "question_generator",
@@ -52,16 +48,14 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         phase_summary=phase_summary,
         raw_history=raw_history,
         chat_history_full=chat_history_full,
-        chat_history_pre_topic=chat_history_pre_topic,
         last_turn=last_turn.model_dump() if last_turn else None,
         k=k,
-        reason=reason,
-        is_independent=is_indep,
+        router_intent=router_intent,
+        router_focus=router_focus,
     )
 
-    if reason == "TOPIC CHANGED":
-        # Use the full (unsliced) history for topic lookup — we need the last
-        # turn's phase/topic to know which topic we are transitioning *from*.
+    # 1. TOPIC CHANGED / Transition Branch
+    if router_intent == "advance_topic":
         if chat_history_full:
             prev_phase = chat_history_full[-1].phase_name
             prev_topic_id = chat_history_full[-1].topic_id
@@ -105,18 +99,15 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             branch="TOPIC CHANGED",
         )
 
-        # Pass only the last turn as bridge context (option a) so the LLM can
-        # naturally acknowledge the candidate's final answer before pivoting.
         bridge_turns = [last_turn] if last_turn else []
-        messages = independent_question_prompt(
+        messages = topic_transition_prompt(
             previous_phase_summaries=phase_summary,
             user_summary=user_summary,
             previous_k_turns=bridge_turns,
             jd=jd,
             phase=new_phase,
             topic=new_topic,
-            router_reason=reason,
-            is_topic_transition=True,
+            router_intent=router_intent,
         )
         log_agent_event(
             session_id,
@@ -128,7 +119,7 @@ def question_generator_node(system_state: SystemState) -> SystemState:
 
         try:
             print(
-                f"[question_generator] invoking llm (independent) messages={len(messages)}"
+                f"[question_generator] invoking llm (transition) messages={len(messages)}"
             )
             response: AIMessage = llm.invoke(messages)
             new_question = response.content
@@ -150,9 +141,12 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             )
             raise
 
+        if system_state.current_phase_name != new_phase.name:
+            system_state.turns_in_current_phase = []
         system_state.current_question = new_question
         system_state.current_phase_name = new_phase.name
         system_state.current_topic_id = new_topic.topic_id
+        system_state.current_topic_name = new_topic.topic
         system_state.current_topic_question_count = 1
 
         print(
@@ -168,21 +162,43 @@ def question_generator_node(system_state: SystemState) -> SystemState:
 
         return system_state
 
-    elif not is_indep:
-        current_phase_name = chat_history_full[-1].phase_name
+    # 2. DEPENDENT (Follow-up / New Angle) Branch
+    else:
+        last_turn = system_state.turns_in_current_phase[-1]
+        current_phase_name = last_turn.phase_name
         current_phase = get_current_phase(plan, current_phase_name)
         if current_phase is None:
             raise ValueError(f"Could not find phase in plan: {current_phase_name}")
-        current_phase_summary = phase_summary[-1]
+        
+        current_topic_id = last_turn.topic_id
+        current_topic = get_current_topic(plan, current_phase_name, current_topic_id)
+        if current_topic is None:
+            raise ValueError(f"Could not find topic in plan: phase={current_phase_name} topic_id={current_topic_id}")
 
-        print(f"[question_generator] dependent follow-up phase={current_phase_name}")
+        # Use a placeholder PhaseSummary for the running phase since summaries are generated on transition
+        current_phase_summary = PhaseSummary(
+            phase_summary_id="current_running",
+            phase_name=current_phase_name,
+            summary="Active evaluation phase. No completed summary available yet."
+        )
+
+        # Get turns of current topic as context in O(1) from turns of the current phase
+        current_topic_turns = [
+            t for t in (system_state.turns_in_current_phase or []) if t.topic_id == current_topic_id
+        ]
+
+        router_focus = system_state.router_focus
+
+        print(f"[question_generator] dependent flow intent={router_intent} phase={current_phase_name}")
         messages = dependent_question_prompt(
             current_phase_summary=current_phase_summary,
-            previous_k_turns=chat_history_full[-k:],
+            previous_k_turns=current_topic_turns,
             user_summary=user_summary,
             jd=jd,
             phase=current_phase,
-            router_reason=reason,
+            topic=current_topic,
+            router_intent=router_intent,
+            router_focus=router_focus,
         )
         log_agent_event(
             session_id,
@@ -231,74 +247,3 @@ def question_generator_node(system_state: SystemState) -> SystemState:
         )
 
         return system_state
-
-    current_phase_name = chat_history_full[-1].phase_name
-    current_topic_id = chat_history_full[-1].topic_id
-
-    topic = get_current_topic(plan, current_phase_name, current_topic_id)
-    if topic is None:
-        raise ValueError(
-            f"Could not find topic in plan: phase={current_phase_name} topic_id={current_topic_id}"
-        )
-    current_phase = get_current_phase(plan, current_phase_name)
-    if current_phase is None:
-        raise ValueError(f"Could not find phase in plan: {current_phase_name}")
-
-    messages = independent_question_prompt(
-        previous_phase_summaries=phase_summary,
-        user_summary=user_summary,
-        previous_k_turns=chat_history_pre_topic,
-        jd=jd,
-        phase=current_phase,
-        topic=topic,
-        router_reason=reason,
-    )
-    log_agent_event(
-        session_id,
-        "question_generator",
-        "prompt_built",
-        messages=messages,
-        branch="INDEPENDENT",
-    )
-
-    try:
-        print(
-            f"[question_generator] invoking llm (independent) messages={len(messages)}"
-        )
-        response: AIMessage = llm.invoke(messages)
-        new_question = response.content
-        log_agent_event(
-            session_id,
-            "question_generator",
-            "llm_response",
-            response=response,
-            branch="INDEPENDENT",
-        )
-    except Exception as e:
-        print(f"[question_generator] Error in LLM invocation: {e}")
-        log_agent_error(
-            session_id,
-            "question_generator",
-            e,
-            messages=messages,
-            branch="INDEPENDENT",
-        )
-        raise
-
-    system_state.current_question = new_question
-    system_state.current_phase_name = current_phase_name
-    system_state.current_topic_id = topic.topic_id
-    system_state.current_topic_question_count += 1
-
-    print(
-        f"[question_generator] done question_len={len(new_question or '')} (independent)"
-    )
-    log_agent_event(
-        session_id,
-        "question_generator",
-        "done",
-        branch="INDEPENDENT",
-        updated_state=system_state,
-    )
-
-    return system_state

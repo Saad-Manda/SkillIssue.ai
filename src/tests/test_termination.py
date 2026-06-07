@@ -13,7 +13,8 @@ class TestTerminationLogic(unittest.TestCase):
         # Patch the LLM to prevent any real API calls
         self.llm_patcher = patch("src.agents.llm.llm")
         self.mock_llm = self.llm_patcher.start()
-        self.mock_llm.invoke.return_value = MagicMock(content="Mocked Question")
+        # Mock LLM to return a valid JSON string by default
+        self.mock_llm.invoke.return_value = MagicMock(content='{"intent": "advance_topic", "focus": ""}')
 
         # Create a simple 2-phase, 2-topic plan
         topic_1_1 = Topic(
@@ -65,7 +66,13 @@ class TestTerminationLogic(unittest.TestCase):
     def tearDown(self):
         self.llm_patcher.stop()
 
-    def create_mock_state(self, current_topic_id, current_phase_name, current_topic_question_count, current_turn_status="NORMAL"):
+    def create_mock_state(self, current_topic_id, current_phase_name, current_topic_question_count, router_intent="NORMAL"):
+        topic_name = ""
+        for phase in self.plan.phase:
+            for t in phase.topics:
+                if t.topic_id == current_topic_id:
+                    topic_name = t.topic
+                    break
         return SystemState.model_construct(
             session_id="test-session",
             user=MagicMock(),
@@ -76,13 +83,18 @@ class TestTerminationLogic(unittest.TestCase):
             current_response="some response",
             plan=self.plan,
             current_topic_id=current_topic_id,
+            current_topic_name=topic_name,
             current_topic_question_count=current_topic_question_count,
             current_phase_name=current_phase_name,
-            current_turn_status=current_turn_status,
+            router_intent=router_intent,
+            router_focus="",
+            phase_transition_occurred=False,
+            completed_phase_name=None,
             min_topics=1,
             max_topics=5,
             final_report="",
-            should_generate_report=False
+            should_generate_report=False,
+            turns_in_current_phase=[]
         )
 
     def test_get_next_topic_bounds(self):
@@ -102,7 +114,7 @@ class TestTerminationLogic(unittest.TestCase):
         self.assertIsNone(topic_idx)
 
     def test_router_node_non_final_topic(self):
-        # Test router behavior when max questions reached on a NON-final topic
+        # Test router behavior when LLM returns advance_topic on a NON-final topic
         system_state = self.create_mock_state(
             current_topic_id="topic-1-1",
             current_phase_name="Phase 1",
@@ -111,11 +123,11 @@ class TestTerminationLogic(unittest.TestCase):
 
         updated_state = router_node(system_state)
         self.assertFalse(updated_state.should_generate_report)
-        self.assertEqual(updated_state.current_turn_status, "TOPIC CHANGED")
+        self.assertEqual(updated_state.router_intent, "advance_topic")
         self.assertTrue(updated_state.is_curr_question_independent)
 
     def test_router_node_final_topic(self):
-        # Test router behavior when max questions reached on the FINAL topic of the final phase
+        # Test router behavior when LLM returns advance_topic on the FINAL topic of the final phase
         system_state = self.create_mock_state(
             current_topic_id="topic-2-2",
             current_phase_name="Phase 2",
@@ -124,8 +136,7 @@ class TestTerminationLogic(unittest.TestCase):
 
         updated_state = router_node(system_state)
         self.assertTrue(updated_state.should_generate_report)
-        # Verify it does not set TOPIC CHANGED and returns early
-        self.assertNotEqual(updated_state.current_turn_status, "TOPIC CHANGED")
+        self.assertEqual(updated_state.router_intent, "advance_topic")
 
     @patch("src.agents.question_generator.agent.session_store")
     def test_question_generator_node_sentinel(self, mock_session_store):
@@ -137,6 +148,7 @@ class TestTerminationLogic(unittest.TestCase):
             response="A",
             phase_name="Phase 2",
             topic_id="topic-2-2",
+            topic_name="Topic 2.2",
             metrics=MagicMock()
         )
         mock_session_state = {
@@ -149,7 +161,7 @@ class TestTerminationLogic(unittest.TestCase):
             current_topic_id="topic-2-2",
             current_phase_name="Phase 2",
             current_topic_question_count=0,
-            current_turn_status="TOPIC CHANGED"
+            router_intent="advance_topic"
         )
 
         updated_state = question_generator_node(system_state)

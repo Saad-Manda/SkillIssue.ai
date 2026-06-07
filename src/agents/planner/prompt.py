@@ -93,9 +93,9 @@ Each Topic must:
 
 Topic weights within a phase must sum approximately to the phase weight.
 
-MAX_QUESTION_COUNT PER TOPIC (0–3)
+MAX_QUESTION_COUNT PER TOPIC
 
-- Assign max_question_count at plan creation for every topic.
+- Assign max_question_count at plan creation for every topic as a SOFT GUIDELINE for the router.
 - Range is 0 to 3 questions per topic. Decide based on the topic's weight and importance to the JD:
   - High weight / JD-critical: 2 or 3 questions.
   - Medium weight: 1 or 2 questions.

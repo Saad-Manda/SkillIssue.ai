@@ -57,12 +57,14 @@ def _build_initial_state(
         current_response="",
         plan=Plan.model_construct(),
         current_topic_id="",
+        current_topic_name="",
         current_topic_question_count=0,
         current_phase_name="introduction",
-        current_turn_status="START",
+        router_intent="START",
         min_topics=min_topics,
         max_topics=max_topics,
         final_report="",
+        turns_in_current_phase=[],
     )
 
 

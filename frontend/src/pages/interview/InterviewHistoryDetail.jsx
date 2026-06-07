@@ -148,7 +148,7 @@ export const InterviewHistoryDetail = () => {
                   <MessageSquare size={14} />
                   <span>Turn {index + 1}</span>
                   <span>{turn.phase_name || 'Unknown phase'}</span>
-                  <span>{turn.topic_id || 'Unknown topic'}</span>
+                  <span>{turn.topic_name || turn.topic_id || 'Unknown topic'}</span>
                 </div>
                 <p style={{ margin: '0 0 8px 0' }}><strong>Question:</strong> {turn.question || 'N/A'}</p>
                 <p style={{ margin: '0 0 10px 0' }}><strong>Response:</strong> {turn.response || 'N/A'}</p>

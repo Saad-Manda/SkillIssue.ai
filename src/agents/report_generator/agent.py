@@ -56,7 +56,7 @@ def report_node(system_state: SystemState) -> SystemState:
             metrics = msg.metrics
 
             plan = system_state.plan
-            topic_name = next(
+            topic_name = getattr(msg, "topic_name", None) or next(
                 (t.topic for p in plan.phase if p.name == phase for t in p.topics if t.topic_id == topic_id),
                 None
             )
@@ -96,7 +96,7 @@ def report_node(system_state: SystemState) -> SystemState:
             metrics = msg.get("metrics")
 
             plan = system_state.plan
-            topic_name = next(
+            topic_name = msg.get("topic_name") or next(
                 (t.topic for p in plan.phase if p.name == phase for t in p.topics if t.topic_id == topic_id),
                 None
             )
