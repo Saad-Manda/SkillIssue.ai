@@ -1,6 +1,6 @@
 "use client";
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -15,7 +15,6 @@ import type { z } from "zod";
 type LoginForm = z.infer<typeof loginSchema>;
 
 function LoginPageContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
   const { setAuth } = useAuthStore();
@@ -45,7 +44,7 @@ function LoginPageContent() {
         username: data.email.split("@")[0],
       });
 
-      router.push(redirectTo);
+      window.location.href = redirectTo;
     } catch (err: unknown) {
       const error = err as { message?: string };
       setApiError(
