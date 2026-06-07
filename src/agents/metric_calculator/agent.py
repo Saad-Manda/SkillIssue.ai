@@ -79,9 +79,11 @@ def metrics_node(system_state: SystemState) -> SystemState:
     )
 
     print(f"[metric_calculator] done turns={len(chat_history_raw)}")
+    updated_turns = (system_state.turns_in_current_phase or []) + [current_turn]
     updated = system_state.model_copy(
         update={
-            "should_generate_report": system_state.should_generate_report
+            "should_generate_report": system_state.should_generate_report,
+            "turns_in_current_phase": updated_turns
         })
     log_agent_event(session_id, "metric_calculator", "done", updated_state=updated)
     return updated

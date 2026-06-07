@@ -63,6 +63,7 @@ def _build_initial_state(
         min_topics=min_topics,
         max_topics=max_topics,
         final_report="",
+        turns_in_current_phase=[],
     )
 
 

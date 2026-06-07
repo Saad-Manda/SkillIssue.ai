@@ -50,22 +50,17 @@ def router_node(system_state: SystemState) -> SystemState:
     max_question_count = current_topic.max_question_count
     print(f"[router] max_question_count={max_question_count}")
 
-    # Load session state and parse history
+    # Load session state
     session_state = session_store.get(session_id) or {}
-    raw_history = session_state.get("chat_history", [])
-    chat_history = parse_chat_history(raw_history)
     log_agent_event(
         session_id,
         "router",
         "session_store_loaded",
         session_state=session_state,
-        chat_history=chat_history,
     )
 
-    # Filter chat history to include only turns matching current_phase_name
-    turns_in_current_phase = [
-        t for t in chat_history if t.phase_name == system_state.current_phase_name
-    ]
+    # Retrieve turns of the current phase in O(1) from system_state
+    turns_in_current_phase = system_state.turns_in_current_phase or []
 
     # If within the first 1-2 turns of a fresh phase, get previous phase summary
     previous_phase_summary = ""

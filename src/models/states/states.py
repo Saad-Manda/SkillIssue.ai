@@ -36,3 +36,4 @@ class SystemState(BaseModel):
     max_topics: int
     final_report: str
     should_generate_report: bool = False
+    turns_in_current_phase: List[Turn] = Field(default_factory=list)

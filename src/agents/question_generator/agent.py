@@ -141,6 +141,8 @@ def question_generator_node(system_state: SystemState) -> SystemState:
             )
             raise
 
+        if system_state.current_phase_name != new_phase.name:
+            system_state.turns_in_current_phase = []
         system_state.current_question = new_question
         system_state.current_phase_name = new_phase.name
         system_state.current_topic_id = new_topic.topic_id

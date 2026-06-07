@@ -86,7 +86,8 @@ class TestTerminationLogic(unittest.TestCase):
             min_topics=1,
             max_topics=5,
             final_report="",
-            should_generate_report=False
+            should_generate_report=False,
+            turns_in_current_phase=[]
         )
 
     def test_get_next_topic_bounds(self):

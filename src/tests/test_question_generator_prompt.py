@@ -245,7 +245,8 @@ def test_question_generator_topic_changed_passes_only_last_turn():
         min_topics=1,
         max_topics=5,
         final_report="",
-        should_generate_report=False
+        should_generate_report=False,
+        turns_in_current_phase=[]
     )
 
     with patch("src.agents.question_generator.agent.session_store") as mock_store, \
