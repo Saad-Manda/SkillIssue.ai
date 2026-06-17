@@ -1,11 +1,13 @@
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from ..llm import llm
+from ..llm import get_llm
 from ..session_logging import log_agent_error, log_agent_event, log_agent_start
 from .prompt import generate_report_prompt
 from ...models.states.states import SystemState
 from ...models.states.redis_session import parse_chat_history, session_store
 from ...models.states.turn import Turn
+
+llm = get_llm("report_generator")
 
 def report_node(system_state: SystemState) -> SystemState:
 

@@ -1,8 +1,10 @@
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from ..llm import llm
+from ..llm import get_llm
 from ..session_logging import log_agent_error, log_agent_event, log_agent_start
 from .prompt import summarize_user_prompt
 from ...models.states.states import SystemState
+
+llm = get_llm("user_summarizer")
 
 def summarizer_node(system_state: SystemState) -> SystemState:
     session_id = system_state.session_id

@@ -11,7 +11,9 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.output_parsers import JsonOutputParser
 from sentence_transformers import SentenceTransformer
 
-from ...agents.llm import llm
+from ...agents.llm import get_llm
+
+llm = get_llm("metric_calculator")
 
 Turn    = Dict[str, str]
 Metrics = Dict[str, Any]

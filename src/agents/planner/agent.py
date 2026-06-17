@@ -1,11 +1,13 @@
 from langchain_core.messages import AIMessage
 from langchain_core.output_parsers import JsonOutputParser
 
-from ..llm import llm
+from ..llm import get_llm
 from ..session_logging import log_agent_error, log_agent_event, log_agent_start
 from .prompt import planner_prompt
 from ...models.states.states import SystemState
 from ...models.plan_model import Plan
+
+llm = get_llm("planner")
 
 
 def planner_node(system_state: SystemState) -> SystemState:
