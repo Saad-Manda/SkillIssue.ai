@@ -5,6 +5,7 @@ import { Send, FileText, BrainCircuit, Clock } from "lucide-react";
 import { sessionApi } from "@/lib/api";
 import { AppButton } from "@/components/primitives/AppButton";
 import { ConfirmModal } from "@/components/primitives/ConfirmModal";
+import { InterviewCompleteModal } from "@/components/primitives/InterviewCompleteModal";
 import { useAuthStore } from "@/store/auth-store";
 import { cn } from "@/lib/utils";
 import type { AnswerResponse } from "@/types/api";
@@ -103,6 +104,7 @@ export default function InterviewSessionPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showEndModal, setShowEndModal] = useState(false);
+  const [interviewComplete, setInterviewComplete] = useState(false);
   const [startTime] = useState(new Date());
 
   const endRef = useRef<HTMLDivElement>(null);
@@ -150,14 +152,17 @@ export default function InterviewSessionPage() {
     try {
       const response = await sessionApi.submitAnswer(session_id, userMsg) as AnswerResponse;
 
-      if (response.current_question) {
+      if (response.interview_complete) {
+        // Store report inline if available (avoids extra fetch on report page)
+        if (response.report) {
+          sessionStorage.setItem(`report_${session_id}`, response.report);
+        }
+        setInterviewComplete(true);
+      } else if (response.current_question) {
         setChat((prev) => [...prev, { role: "ai", content: response.current_question! }]);
         setCurrentPhase(response.current_phase_name ?? currentPhase);
         setCurrentTopic(response.current_topic_name ?? "");
         setTurnCount((c) => c + 1);
-      } else {
-        // Interview complete — navigate to report
-        router.push(`/report/${session_id}`);
       }
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -261,7 +266,7 @@ export default function InterviewSessionPage() {
                     ref={textareaRef}
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
-                    disabled={isProcessing}
+                    disabled={isProcessing || interviewComplete}
                     placeholder="Type your answer…"
                     rows={1}
                     className={cn(
@@ -291,7 +296,7 @@ export default function InterviewSessionPage() {
                   type="submit"
                   variant="brand"
                   size="md"
-                  disabled={isProcessing || !inputMessage.trim()}
+                  disabled={isProcessing || !inputMessage.trim() || interviewComplete}
                   isLoading={isProcessing}
                   className="mb-6"
                 >
@@ -321,6 +326,12 @@ export default function InterviewSessionPage() {
         cancelLabel="Continue Interview"
         variant="default"
         onConfirm={() => router.push(`/report/${session_id}`)}
+      />
+
+      {/* Auto-triggered when interview_complete is returned */}
+      <InterviewCompleteModal
+        open={interviewComplete}
+        onNavigate={() => router.push(`/report/${session_id}`)}
       />
     </>
   );
