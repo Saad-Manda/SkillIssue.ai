@@ -22,6 +22,8 @@ def report_node(system_state: SystemState) -> SystemState:
     )
     print(f"[report_generator] start session_id={session_id}")
 
+    system_state.current_question = ""
+
     user_summary = system_state.user_summary
     jd = system_state.jd
     raw_history = session_state.get("chat_history", [])
