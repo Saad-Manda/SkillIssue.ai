@@ -3,12 +3,14 @@ import re
 from langchain_core.messages import AIMessage
 from langchain_core.output_parsers import JsonOutputParser
 
-from ..llm import llm
+from ..llm import get_llm
 from ..session_logging import log_agent_error, log_agent_event, log_agent_start
 from .prompt import router_prompt
 from ...models.states.states import SystemState
 from ...models.states.redis_session import parse_chat_history, session_store
 from ..question_generator.get_topic import get_next_topic
+
+llm = get_llm("router")
 
 
 def router_node(system_state: SystemState) -> SystemState:

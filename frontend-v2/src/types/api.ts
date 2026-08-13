@@ -99,6 +99,8 @@ export interface AnswerResponse {
   current_topic_name?: string;
   current_topic_id?: string;
   is_complete?: boolean;
+  interview_complete?: boolean;
+  report?: string | null;
 }
 
 // Interview History

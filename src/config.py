@@ -10,7 +10,12 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     MODEL: str 
     GOOGLE_API_KEY: str | None = None
+    GEMINI_API_KEY: str | None = None
     GROQ_API_KEY: str | None = None
+    GROQ_API_KEY_1: str | None = None
+    GROQ_API_KEY_2: str | None = None
+    GROQ_API_KEY_3: str | None = None
+    GROQ_API_KEY_4: str | None = None
     REDIS_URL: str
     SECRET_KEY: str
     ALGORITHM: str

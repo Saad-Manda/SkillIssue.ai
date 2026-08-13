@@ -56,18 +56,21 @@ async def start_session_endpoint(
 @router.post("/{session_id}/answer")
 async def submit_answer_endpoint(session_id: str, payload: SubmitAnswerRequest):
     logger.info("submit_answer_endpoint called for session_id=%s", session_id)
-    state, chat, turn_count, store_count = submit_answer(
+    state, chat, turn_count, store_count, interview_complete = submit_answer(
         session_id=session_id,
         answer=payload.answer,
     )
     logger.info(
-        "submit_answer_endpoint succeeded for session_id=%s turn_count=%s",
+        "submit_answer_endpoint succeeded for session_id=%s turn_count=%s interview_complete=%s",
         session_id,
         turn_count,
+        interview_complete,
     )
     return {
         "session_id": session_id,
         "current_question": state.current_question,
+        "interview_complete": interview_complete,
+        "report": state.final_report if interview_complete else None,
         "current_phase_name": state.current_phase_name,
         "current_topic_id": state.current_topic_id,
         "current_topic_name": state.current_topic_name or get_topic_name(state.plan, state.current_topic_id),

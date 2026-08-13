@@ -4,9 +4,11 @@ from langchain_core.messages import AIMessage
 
 from ...models.states.redis_session import session_store, parse_chat_history
 from ...models.states.states import SystemState
-from ..llm import llm
+from ..llm import get_llm
 from ..session_logging import log_agent_error, log_agent_event, log_agent_start
 from .prompt import phase_summary_prompt
+
+llm = get_llm("phase_summarizer")
 
 
 def phase_summarizer_node(system_state: SystemState) -> SystemState:

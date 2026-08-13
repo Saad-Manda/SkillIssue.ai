@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def submit_answer(
     session_id: str, answer: str
-) -> tuple[SystemState, list[dict], int, int]:
+) -> tuple[SystemState, list[dict], int, int, bool]:
     logger.info("submit_answer controller called for session_id=%s", session_id)
     state = _load_graph_state(session_id)
     logger.info(
@@ -36,15 +36,17 @@ def submit_answer(
         chat.append({"role": "assistant", "content": turn["question"]})
         chat.append({"role": "user", "content": turn["response"]})
 
-    if next_state.current_question:
+    if next_state.current_question and not next_state.should_generate_report:
         chat.append({"role": "assistant", "content": next_state.current_question})
 
     turn_count = len(turns)
     store_count = len(turns)
+    interview_complete = next_state.should_generate_report
 
     logger.info(
-        "submit_answer controller succeeded for session_id=%s turn_count=%s",
+        "submit_answer controller succeeded for session_id=%s turn_count=%s interview_complete=%s",
         session_id,
         turn_count,
+        interview_complete,
     )
-    return next_state, chat, turn_count, store_count
+    return next_state, chat, turn_count, store_count, interview_complete
