@@ -243,6 +243,7 @@ python -c "from src.agents.orchestrator import _build_graph; _build_graph(); pri
 | Testing strategy, test targets, pre-commit gate | `reference/testing.md` |
 | Original problem statement & phase definitions | `ProblemStatement.md` |
 | Chronological build log | `implementation_log.md` |
+| Staging/deployment plan (PAUSED, awaiting a feature to be designed in before execution) | `.antigravity/plans/phase-6-staging-deployment-plan.md` |
 
 ---
 

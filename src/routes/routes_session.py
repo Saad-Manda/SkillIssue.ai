@@ -1,9 +1,13 @@
 import logging
 
-from fastapi import APIRouter, Depends
+import redis.asyncio as aioredis
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
+from ..config import settings
 from ..controllers.session.create_report import get_report
 from ..controllers.session.send_answer import submit_answer
 from ..controllers.session.start_session import start_session
@@ -56,7 +60,8 @@ async def start_session_endpoint(
 @router.post("/{session_id}/answer")
 async def submit_answer_endpoint(session_id: str, payload: SubmitAnswerRequest):
     logger.info("submit_answer_endpoint called for session_id=%s", session_id)
-    state, chat, turn_count, store_count, interview_complete = submit_answer(
+    state, chat, turn_count, store_count, interview_complete = await run_in_threadpool(
+        submit_answer,
         session_id=session_id,
         answer=payload.answer,
     )
@@ -86,3 +91,34 @@ async def get_report_endpoint(session_id: str):
     report, state = await get_report(session_id)
     logger.info("get_report_endpoint completed for session_id=%s", session_id)
     return {"report": report}
+
+
+@router.get("/{session_id}/events")
+async def stream_session_events(session_id: str, request: Request):
+    async def event_stream():
+        client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        pubsub = client.pubsub()
+        await pubsub.subscribe(f"session:{session_id}:events")
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                msg = await pubsub.get_message(ignore_subscribe_messages=True, timeout=15.0)
+                if msg and msg["type"] == "message":
+                    yield f"data: {msg['data']}\n\n"
+                else:
+                    yield ": keepalive\n\n"
+        finally:
+            await pubsub.unsubscribe()
+            await pubsub.close()
+            await client.close()
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )

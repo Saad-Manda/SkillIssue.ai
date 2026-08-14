@@ -6,6 +6,9 @@ import { sessionApi } from "@/lib/api";
 import { AppButton } from "@/components/primitives/AppButton";
 import { ConfirmModal } from "@/components/primitives/ConfirmModal";
 import { InterviewCompleteModal } from "@/components/primitives/InterviewCompleteModal";
+import { InterviewGraphPanel } from "@/components/interview/InterviewGraphPanel";
+import { InterviewLogFeed } from "@/components/interview/InterviewLogFeed";
+import { useSessionEvents } from "@/hooks/useSessionEvents";
 import { useAuthStore } from "@/store/auth-store";
 import { cn } from "@/lib/utils";
 import type { AnswerResponse } from "@/types/api";
@@ -110,6 +113,8 @@ export default function InterviewSessionPage() {
   const endRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const { events, visitedNodes, visitedEdges, activeNode, pulseTrigger } = useSessionEvents(session_id);
+
   // Load initial question from sessionStorage
   useEffect(() => {
     const stored = sessionStorage.getItem(`session_${session_id}`);
@@ -180,7 +185,7 @@ export default function InterviewSessionPage() {
     <>
       <div className="flex h-[calc(100vh-56px)]">
         {/* ── Sidebar ───────────────────────────────────────────────── */}
-        <div className="w-72 flex-shrink-0 border-r border-warm-border bg-white flex flex-col">
+        <div className="w-80 flex-shrink-0 border-r border-warm-border bg-white flex flex-col">
           {/* Header */}
           <div className="px-5 py-4 border-b border-warm-border">
             <p className="text-xs font-semibold uppercase tracking-widest text-text-muted">
@@ -203,18 +208,33 @@ export default function InterviewSessionPage() {
             </div>
           </div>
 
-          {/* Current Phase & Topic */}
-          <div className="px-5 py-4 flex-1">
+          {/* Current Phase & Topic + live agent graph */}
+          <div className="px-5 py-4 flex-1 overflow-y-auto">
             <div className="mb-4">
               <p className="text-xs text-text-muted mb-1">Current Phase</p>
               <p className="text-sm font-semibold text-text-main">{currentPhase}</p>
             </div>
             {currentTopic && (
-              <div>
+              <div className="mb-4">
                 <p className="text-xs text-text-muted mb-1">Active Topic</p>
                 <p className="text-sm text-text-secondary">{currentTopic}</p>
               </div>
             )}
+
+            <div className="mb-4">
+              <p className="text-xs text-text-muted mb-2">Agent Graph</p>
+              <InterviewGraphPanel
+                visitedNodes={visitedNodes}
+                visitedEdges={visitedEdges}
+                activeNode={activeNode}
+                pulseTrigger={pulseTrigger}
+              />
+            </div>
+
+            <div>
+              <p className="text-xs text-text-muted mb-2">Activity Log</p>
+              <InterviewLogFeed events={events} />
+            </div>
           </div>
 
           {/* End interview */}
