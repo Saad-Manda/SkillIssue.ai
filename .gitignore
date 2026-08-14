@@ -212,3 +212,9 @@ __marimo__/
 
 # DataGrip
 .idea/
+
+# macOS
+.DS_Store
+
+# Antigravity AI agent scratch/plans
+.antigravity/
