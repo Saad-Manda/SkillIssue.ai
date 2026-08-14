@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
 from ...schemas.user import User as UserSchema
 from ..job_description.get_jd import get_jd
@@ -38,7 +39,7 @@ async def start_session(
     logger.info("start_session controller created session_id=%s", session_id)
 
     initial_state = _build_initial_state(session_id, user, jd, interview_length)
-    state = _run_graph(initial_state, resume=False)
+    state = await run_in_threadpool(_run_graph, initial_state, resume=False)
 
     chat = []
     if state.current_question:

@@ -8,3 +8,4 @@ from .experience import Experience
 from .education import Education
 from .project import Project
 from .leadership import Leadership
+from .jd import JobDescription

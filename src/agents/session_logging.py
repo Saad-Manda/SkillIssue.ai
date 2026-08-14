@@ -1,12 +1,15 @@
 import json
 import logging
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
 from typing import Any
 
 from langchain_core.messages import BaseMessage
 from pydantic import BaseModel
+
+from ..models.states.redis_session import session_store
 
 
 _LOGGER_CACHE: dict[str, logging.Logger] = {}
@@ -81,8 +84,11 @@ def _to_loggable(value: Any) -> Any:
 
 
 def log_agent_event(session_id: str, agent: str, event: str, **payload: Any) -> None:
+    timestamp = datetime.now(timezone.utc).isoformat()
+
     logger = get_session_logger(session_id)
     serialized = _to_loggable(payload)
+    serialized["timestamp"] = timestamp
     pretty_payload = json.dumps(
         serialized,
         ensure_ascii=False,
@@ -95,6 +101,22 @@ def log_agent_event(session_id: str, agent: str, event: str, **payload: Any) -> 
         event,
         pretty_payload,
     )
+
+    # ponytail: swallow publish errors, visualization is best-effort, never break the interview
+    try:
+        session_store.client.publish(
+            f"session:{session_id}:events",
+            json.dumps(
+                {
+                    "session_id": session_id,
+                    "agent": agent,
+                    "event": event,
+                    "timestamp": timestamp,
+                }
+            ),
+        )
+    except Exception:
+        pass
 
 
 def log_agent_start(agent: str, session_id: str, system_state: Any) -> None:

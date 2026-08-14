@@ -133,3 +133,11 @@ export interface ChatTurn {
 export interface InterviewDetail extends Interview {
   chat_history: ChatTurn[];
 }
+
+// Live graph events (SSE)
+export interface SessionEvent {
+  session_id: string;
+  agent: string;
+  event: string;
+  timestamp: string;
+}
