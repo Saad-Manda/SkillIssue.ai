@@ -1,0 +1,74 @@
+.profile-wrapper {
+  --bg-primary: #ffffff;
+  --bg-secondary: #F9FAFB;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --border-color: #E5E7EB;
+  --accent-primary: #09090b;
+  --accent-hover: #27272a;
+  --btn-primary-text: #ffffff;
+  --array-item-bg: #F9FAFB;
+  
+  --error-bg: #FEF2F2;
+  --error-text: #EF4444;
+  --success-bg: #F0FDF4;
+  --success-text: #16A34A;
+  
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  min-height: calc(100vh - 64px);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+  font-family: var(--font-sans);
+}
+
+.profile-wrapper.theme-dark {
+  --bg-primary: #18181b;
+  --bg-secondary: #09090b;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --border-color: #27272a;
+  --accent-primary: #ffffff;
+  --accent-hover: #e4e4e7;
+  --btn-primary-text: #000000;
+  --array-item-bg: #1f1f22;
+
+  --error-bg: #450a0a;
+  --error-text: #fca5a5;
+  --success-bg: #052e16;
+  --success-text: #86efac;
+}
+
+/* Base override for internal selects to respect theme variables */
+.profile-wrapper select {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.profile-wrapper select:focus {
+  border-color: var(--accent-primary) !important;
+  outline: none;
+}
+
+/* Theme Toggle Button styles */
+.profile-wrapper .theme-toggle-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-wrapper .theme-toggle-btn:hover {
+  background-color: var(--array-item-bg);
+}

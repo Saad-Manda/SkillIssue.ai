@@ -1,0 +1,31 @@
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
+from enum import Enum
+from sqlalchemy import Column, Integer, DateTime, String, JSON, Text, Float
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.dialects.postgresql import ARRAY
+from .base import Base
+
+class EmpType(str, Enum):
+    part_time = "part_time"
+    full_time = "full_time"
+
+class LocType(str, Enum):
+    remote = "remote"
+    onsite = "onsite"
+
+class JobDescription(Base):
+    __tablename__ = "job_descriptions"
+
+    jd_id = Column(String, primary_key=True, index=True)
+    job_title = Column(String, nullable=False)
+    job_type = Column(SQLEnum(EmpType, native_enum=False, validate_strings=True), nullable=True)
+    loc_type = Column(SQLEnum(LocType, native_enum=False, validate_strings=True), nullable=True)
+    location = Column(String, nullable=True)
+    salary = Column(Float, nullable=True)
+    min_experience = Column(Float, nullable=False)
+    responsibilities = Column(ARRAY(String), nullable=True)
+    required_qualification = Column(String, nullable=False)
+    required_skills = Column(ARRAY(String), nullable=True)
+    preferred_skills = Column(ARRAY(String), nullable=True)
+    description = Column(String, nullable=True)
