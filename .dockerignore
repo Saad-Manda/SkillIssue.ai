@@ -1,0 +1,12 @@
+.git
+__pycache__/
+*.pyc
+.venv/
+venv/
+frontend/
+frontend-v2/
+node_modules/
+.env
+logs/
+.antigravity/
+*.md
