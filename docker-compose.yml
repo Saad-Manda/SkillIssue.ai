@@ -13,5 +13,30 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build: .
+    container_name: skillissue_backend
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - redis
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: skillissue_caddy
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddyfile:ro
+      - caddy_data:/data
+    command: caddy run --config /etc/caddyfile --adapter caddyfile
+    depends_on:
+      - backend
+
 volumes:
   redis_data:
+  caddy_data:

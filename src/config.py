@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     MONGO_DB: str
     ATLAS_DB_URI: str
     COLLECTION_NAME: str
+    ALLOWED_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000"
 
     model_config = SettingsConfigDict(env_file = BASE_DIR / ".env", extra="ignore")
 
