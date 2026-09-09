@@ -1,5 +1,6 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from ..config import settings
 from dotenv import load_dotenv
 
@@ -24,13 +25,31 @@ def get_llm(agent_name: str = "default"):
     """
     Returns the appropriate LLM client instance for the specified agent.
     
-    If GEMINI_API_KEY (or GOOGLE_API_KEY) is configured, uses Gemini for all agents.
+    If OPENAI_API_KEY is configured, uses OpenAI for all agents.
+    Otherwise, if GEMINI_API_KEY (or GOOGLE_API_KEY) is configured, uses Gemini for all agents.
     Otherwise, uses one of 4 Groq API keys based on the agent's preferred slot,
     falling back to other slots in rotation if the preferred key is missing.
     """
     global _llm_cache
 
-    # 1. Check Gemini Override
+    # 1. Check OpenAI Override
+    openai_key = settings.OPENAI_API_KEY
+    if openai_key:
+        cache_key = ("openai", openai_key)
+        if cache_key not in _llm_cache:
+            model_name = settings.MODEL
+            if "gpt" not in model_name.lower():
+                # Default fallback model for OpenAI if model setting is currently a Gemini/Groq one
+                model_name = "gpt-5-nano"
+            print(f"[llm] Initializing OpenAI LLM for {agent_name} using model {model_name}")
+            _llm_cache[cache_key] = ChatOpenAI(
+                model=model_name,
+                api_key=openai_key,
+                temperature=0.6
+            )
+        return _llm_cache[cache_key]
+
+    # 2. Check Gemini Override
     gemini_key = settings.GEMINI_API_KEY
     if gemini_key:
         cache_key = ("gemini", gemini_key)
@@ -38,7 +57,7 @@ def get_llm(agent_name: str = "default"):
             model_name = settings.MODEL
             if "gemini" not in model_name.lower():
                 # Default fallback model for Gemini if model setting is currently a Groq one
-                model_name = "gemini-2.5-flash"
+                model_name = "gemini-3.6-flash"
             print(f"[llm] Initializing Gemini LLM for {agent_name} using model {model_name}")
             _llm_cache[cache_key] = ChatGoogleGenerativeAI(
                 model=model_name,
@@ -47,7 +66,7 @@ def get_llm(agent_name: str = "default"):
             )
         return _llm_cache[cache_key]
 
-    # 2. Groq Distribution & Fallback Logic
+    # 3. Groq Distribution & Fallback Logic
     groq_keys = [
         settings.GROQ_API_KEY_1,
         settings.GROQ_API_KEY_2,

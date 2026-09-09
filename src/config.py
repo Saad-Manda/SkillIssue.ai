@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     GROQ_API_KEY_2: str | None = None
     GROQ_API_KEY_3: str | None = None
     GROQ_API_KEY_4: str | None = None
+    OPENAI_API_KEY: str | None = None
     REDIS_URL: str
     SECRET_KEY: str
     ALGORITHM: str
