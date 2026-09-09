@@ -218,3 +218,13 @@ __marimo__/
 
 # Antigravity AI agent scratch/plans
 .antigravity/
+ANTIGRAVITY.md
+.claude/
+
+# Planning / AI scaffold docs
+PRD.md
+ProblemStatement.md
+implementation_log.md
+
+# Google OAuth client secrets
+client_secret*.json
